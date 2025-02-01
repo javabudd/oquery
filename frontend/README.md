@@ -3,19 +3,20 @@
 ### Requirements
 
 * node==23
+* yarn
 
 ### Setup
 
-* `npm i`
+* `yarn install`
 
 ### Start development
 
-* `npm start`
+* `yarn start`
 
 ### Test
 
-* `npm test`
+* `yarn test`
 
 ### Build to production
 
-* `npm run build`
+* `yarn run build`
