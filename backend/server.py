@@ -4,7 +4,7 @@ from typing import Generator
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.responses import Response, StreamingResponse
+from fastapi.responses import StreamingResponse
 from ollama import Client
 from pydantic import BaseModel
 
@@ -20,19 +20,6 @@ class ChatRequest(BaseModel):
 @app.get("/")
 async def root():
     return {"Hello": "World"}
-
-
-@app.options("/query")
-async def options():
-    return Response(
-        content="",
-        status_code=204,  # No Content
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
-        }
-    )
 
 
 @app.post('/query')
