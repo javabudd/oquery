@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const API_URL = "http://localhost:6969/query";
 
@@ -8,6 +8,7 @@ const FetchJsonComponent: React.FC = () => {
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
 	const controllerRef = useRef<AbortController | null>(null);
+	const responseRef = useRef<HTMLDivElement | null>(null);
 
 	const sendRequest = useCallback(async () => {
 		if (!query.trim()) return; // Prevent empty queries
@@ -70,34 +71,49 @@ const FetchJsonComponent: React.FC = () => {
 			controllerRef.current = null;
 		}
 		setLoading(false);
-		setError("Request was stopped.");
+		setError("Request was cancelled.");
 	};
+
+	const resetForm = () => {
+		setQuery("");
+		setResponse("");
+		setError(null);
+	};
+
+	// Auto-scroll down when response updates
+	useEffect(() => {
+		if (responseRef.current) {
+			responseRef.current.scrollTop = responseRef.current.scrollHeight;
+		}
+	}, [response]);
 
 	return (
 		<div style={{ padding: "20px", fontFamily: "Arial, sans-serif", textAlign: "center" }}>
 			<h2>How can we help?</h2>
 
-			{response && (
-				<div
-					style={{
-						marginTop: "20px",
-						color: "green",
-						whiteSpace: "pre-line",
-						textAlign: "center",
-						border: "1px solid #ddd",
-						padding: "10px",
-						borderRadius: "5px",
-						backgroundColor: "#f9f9f9",
-						maxWidth: "600px",
-						margin: "20px auto",
-						overflowWrap: "break-word",
-						wordWrap: "break-word",
-						overflow: "hidden",
-					}}
-				>
-					<strong>Response:</strong> {response}
-				</div>
-			)}
+			<div
+				ref={responseRef}
+				style={{
+					marginTop: "20px",
+					color: "green",
+					whiteSpace: "pre-line",
+					textAlign: "center",
+					border: "1px solid #ddd",
+					padding: "10px",
+					borderRadius: "5px",
+					backgroundColor: "#f9f9f9",
+					maxWidth: "600px",
+					margin: "20px auto",
+					overflowWrap: "break-word",
+					wordWrap: "break-word",
+					overflowY: "auto",
+					maxHeight: "300px",
+				}}
+			>
+				{response && <strong>Response:</strong>}
+				<p>{response}</p>
+			</div>
+
 			{error && <p style={{ marginTop: "20px", color: "red" }}>Error: {error}</p>}
 
 			<input
@@ -116,11 +132,17 @@ const FetchJsonComponent: React.FC = () => {
 			/>
 
 			<div style={{ marginTop: "10px" }}>
-				<button onClick={sendRequest} disabled={loading} style={{ padding: "10px", fontSize: "16px", marginRight: "10px" }}>
-					{loading ? "Sending..." : "Send"}
-				</button>
-				<button onClick={stopRequest} disabled={!loading} style={{ padding: "10px", fontSize: "16px", backgroundColor: "red", color: "white" }}>
-					Stop
+				{loading ? (
+					<button onClick={stopRequest} style={{ padding: "10px", fontSize: "16px", marginRight: "10px", backgroundColor: "red", color: "white" }}>
+						Cancel
+					</button>
+				) : (
+					<button onClick={sendRequest} disabled={loading} style={{ padding: "10px", fontSize: "16px", marginRight: "10px" }}>
+						Send
+					</button>
+				)}
+				<button onClick={resetForm} style={{ padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white" }}>
+					Reset
 				</button>
 			</div>
 		</div>
