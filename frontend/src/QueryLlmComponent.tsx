@@ -158,6 +158,7 @@ const QueryLlmComponent: React.FC = () => {
 				</button>
 				<select onChange={(e) => setModel(e.target.value)} style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
 					<option selected={true} value={"llama3.2"}>Llama 3.2</option>
+					<option value={"phi4"}>phi4</option>
 					<option value={"deepseek-r1"}>DeepSeek-R1</option>
 				</select>
 			</div>
