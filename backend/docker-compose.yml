@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 6970
+
+  nginx:
+    depends_on:
+      - backend
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    ports:
+      - 6969:6969
+      - 80:80
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certs:/etc/letsencrypt/live
