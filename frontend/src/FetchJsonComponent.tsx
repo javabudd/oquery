@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 
-const API_URL = "http://localhost:6969/query";
+const API_URL = "http://192.168.0.70:6969/query";
 
 const FetchJsonComponent: React.FC = () => {
 	const [query, setQuery] = useState<string>("");

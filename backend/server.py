@@ -22,6 +22,11 @@ async def root():
     return {"Hello": "World"}
 
 
+@app.options('/query')
+def options():
+    return True
+
+
 @app.post('/query')
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
