@@ -2,6 +2,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = 'llama3.2';
+const DEFAULT_SEARCH_ENGINE = 'duckduckgo';
 
 const QueryLlmComponent: React.FC = () => {
 	const [query, setQuery] = useState<string>("");
@@ -41,7 +42,7 @@ const QueryLlmComponent: React.FC = () => {
 					model: model ? model : DEFAULT_MODEL,
 					message: query,
 					history: [],
-					searchEngine
+					searchEngine: searchEngine ? searchEngine : DEFAULT_SEARCH_ENGINE
 				}),
 				signal,
 			});
