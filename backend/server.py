@@ -1,9 +1,10 @@
 import os
+from typing import Generator
 
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from ollama import ChatResponse
+from fastapi.responses import StreamingResponse
 from ollama import Client
 from pydantic import BaseModel
 
@@ -22,14 +23,16 @@ async def root():
 
 
 @app.post('/query')
-async def root(request: ChatRequest):
-    client = Client(
-        host=os.getenv("OLLAMA_HOST")
-    )
+def query(request: ChatRequest):
+    client = Client(host=os.getenv("OLLAMA_HOST"))
 
-    response: ChatResponse = client.chat(model=request.model, messages=request.messages, stream=False)
+    def generate() -> Generator[str, None, None]:
+        response = client.chat(model=request.model, messages=request.messages, stream=True)
 
-    return {"message": response['message']['content']}
+        for chunk in response:
+            yield chunk['message']['content']
+
+    return StreamingResponse(generate(), media_type="text/plain")
 
 
 if __name__ == "__main__":
