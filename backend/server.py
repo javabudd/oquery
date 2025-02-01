@@ -59,7 +59,7 @@ def query(request: ChatRequest):
 
         response = client.chat(
             model=request.model,
-            messages=messages + request.history,
+            messages=messages,
             stream=True,
         )
 
