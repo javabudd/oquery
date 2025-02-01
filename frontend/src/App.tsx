@@ -1,5 +1,5 @@
 import React from 'react';
-import FetchJsonComponent from "./FetchJsonComponent";
+import QueryLlmComponent from "./QueryLlmComponent";
 import './App.css';
 
 function App() {
@@ -7,7 +7,7 @@ function App() {
 		<div className="App">
 			<header className="App-header">
 				<div>
-					<FetchJsonComponent/>
+					<QueryLlmComponent/>
 				</div>
 			</header>
 		</div>

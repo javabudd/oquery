@@ -1,9 +1,11 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
 
 const API_URL = "https://javabudd.hopto.org/query";
+const DEFAULT_MODEL = 'deepseek-r1';
 
-const FetchJsonComponent: React.FC = () => {
+const QueryLlmComponent: React.FC = () => {
 	const [query, setQuery] = useState<string>("");
+	const [model, setModel] = useState<ChangeEvent<HTMLSelectElement> | null>(null);
 	const [response, setResponse] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ const FetchJsonComponent: React.FC = () => {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					model: "deepseek-r1",
+					model: model ? model.target.value : DEFAULT_MODEL,
 					message: query,
 					history: []
 				}),
@@ -79,6 +81,7 @@ const FetchJsonComponent: React.FC = () => {
 		setQuery("");
 		setResponse("");
 		setError(null);
+		setModel(null);
 	};
 
 	// Auto-scroll down when response updates
@@ -153,9 +156,12 @@ const FetchJsonComponent: React.FC = () => {
 				        style={{padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white"}}>
 					Reset
 				</button>
+				<select onChange={setModel} style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
+					<option value={"deepseek-r1"}>DeepSeek-R1</option>
+				</select>
 			</div>
 		</div>
 	);
 };
 
-export default FetchJsonComponent;
+export default QueryLlmComponent;
