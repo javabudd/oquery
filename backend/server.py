@@ -25,6 +25,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     model: str
     message: str
+    searchEngine: str = None
     history: List[dict] = []
 
 

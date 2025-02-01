@@ -40,7 +40,8 @@ const QueryLlmComponent: React.FC = () => {
 				body: JSON.stringify({
 					model: model ? model : DEFAULT_MODEL,
 					message: query,
-					history: []
+					history: [],
+					searchEngine
 				}),
 				signal,
 			});
