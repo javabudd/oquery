@@ -37,6 +37,7 @@ const FetchJsonComponent: React.FC = () => {
 				body: JSON.stringify({
 					model: "deepseek-r1",
 					message: query,
+					history: []
 				}),
 				signal,
 			});

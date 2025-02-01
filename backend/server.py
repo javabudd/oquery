@@ -41,7 +41,9 @@ def query(request: ChatRequest):
         messages = [
                        {
                            "role": "system",
-                           "content": "You are a helpful AI that provides concise and technical answers."
+                           "content": "You are a helpful AI that provides concise and technical answers. "
+                                      "When you are not sure of a response you always reply back with just the word "
+                                      "\"UNFOUND\".",
                        }
                    ] + request.history
 
@@ -78,8 +80,10 @@ def query(request: ChatRequest):
 def _handle_tool_call(tool_request: str) -> str:
     """Process tool calls (e.g., API requests) and return data."""
 
-    # Fake tool handling - Example: If user asked for stock price
-    if "stock price" in tool_request:
+    if 'UNFOUND' in tool_request:
+        print('detected UNFOUND in assistant response, lets dig deeper...')
+        return '{"deep_dive": "1"}'
+    elif "stock price" in tool_request:
         return '{"AAPL": "178.90 USD"}'
     elif "weather" in tool_request:
         return '{"NYC": {"temp": "72°F", "condition": "Sunny"}}'
