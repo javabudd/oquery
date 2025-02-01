@@ -109,12 +109,14 @@ const QueryLlmComponent: React.FC = () => {
 					padding: "10px",
 					borderRadius: "5px",
 					backgroundColor: "#f9f9f9",
+					width: '600px',
 					maxWidth: "600px",
 					margin: "20px auto",
 					overflowWrap: "break-word",
 					wordWrap: "break-word",
 					overflowY: "auto",
-					maxHeight: "300px",
+					height: '200px',
+					maxHeight: "400px",
 				}}
 			>
 				{response && <strong>Response:</strong>}
@@ -122,7 +124,6 @@ const QueryLlmComponent: React.FC = () => {
 			</div>
 
 			{error && <p style={{marginTop: "20px", color: "red"}}>Error: {error}</p>}
-
 			<input
 				type="text"
 				placeholder="Enter your query"
@@ -131,7 +132,6 @@ const QueryLlmComponent: React.FC = () => {
 				disabled={loading}
 				style={{
 					padding: "10px",
-					fontSize: "16px",
 					marginRight: "10px",
 					width: "80%",
 					maxWidth: "400px",
@@ -142,7 +142,6 @@ const QueryLlmComponent: React.FC = () => {
 				{loading ? (
 					<button onClick={stopRequest} style={{
 						padding: "10px",
-						fontSize: "16px",
 						marginRight: "10px",
 						backgroundColor: "red",
 						color: "white"
@@ -151,22 +150,22 @@ const QueryLlmComponent: React.FC = () => {
 					</button>
 				) : (
 					<button onClick={sendRequest} disabled={loading}
-					        style={{padding: "10px", fontSize: "16px", marginRight: "10px"}}>
+					        style={{padding: "10px", marginRight: "10px"}}>
 						Send
 					</button>
 				)}
 				<button onClick={resetForm}
-				        style={{padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white"}}>
+				        style={{padding: "10px", backgroundColor: "gray", color: "white"}}>
 					Reset
 				</button>
 				<select onChange={(e) => setModel(e.target.value)}
-				        style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
+				        style={{padding: "10px", marginLeft: "10px"}}>
 					<option selected={true} value={"llama3.2"}>Llama 3.2</option>
 					<option value={"phi4"}>phi4</option>
 					<option value={"deepseek-r1"}>DeepSeek-R1</option>
 				</select>
 				<select disabled={true} onChange={(e) => setSearchEngine(e.target.value)}
-				        style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
+				        style={{padding: "10px", marginLeft: "10px"}}>
 					<option selected={true} value={"duckduckgo"}>DuckDuckGo</option>
 				</select>
 			</div>
