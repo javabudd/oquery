@@ -68,7 +68,7 @@ const QueryLlmComponent: React.FC = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [model, query]);
+	}, [model, query, searchEngine]);
 
 	const stopRequest = () => {
 		if (controllerRef.current) {
