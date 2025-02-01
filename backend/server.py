@@ -40,7 +40,7 @@ def query(request: ChatRequest):
             model=request.model,
             messages=[
                 {"role": "system", "content": "You are a helpful AI that provides concise and technical answers."},
-                {"role": "user", "content": query}
+                {"role": "user", "content": request.message}
             ],
             stream=True,
         )
