@@ -1,0 +1,11 @@
+# Backend
+
+## Requirements
+
+* conda/miniconda
+
+## Setup
+
+* `conda create -n oquery python=3.14`
+* `conda activate oquery`
+* `python -m pip install -r requirements.txt`
