@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 const API_URL = "http://localhost:6969/query";
 
@@ -36,7 +36,7 @@ const FetchJsonComponent: React.FC = () => {
 				},
 				body: JSON.stringify({
 					model: "deepseek-r1",
-					messages: [{ role: "user", content: query }],
+					messages: [{role: "user", content: query}],
 				}),
 				signal,
 			});
@@ -51,9 +51,9 @@ const FetchJsonComponent: React.FC = () => {
 			let result = "";
 
 			while (true) {
-				const { done, value } = await reader.read();
+				const {done, value} = await reader.read();
 				if (done) break;
-				result += decoder.decode(value, { stream: true });
+				result += decoder.decode(value, {stream: true});
 				setResponse(result);
 			}
 		} catch (err) {
@@ -88,7 +88,7 @@ const FetchJsonComponent: React.FC = () => {
 	}, [response]);
 
 	return (
-		<div style={{ padding: "20px", fontFamily: "Arial, sans-serif", textAlign: "center" }}>
+		<div style={{padding: "20px", fontFamily: "Arial, sans-serif", textAlign: "center"}}>
 			<h2>How can we help?</h2>
 
 			<div
@@ -114,7 +114,7 @@ const FetchJsonComponent: React.FC = () => {
 				<p>{response}</p>
 			</div>
 
-			{error && <p style={{ marginTop: "20px", color: "red" }}>Error: {error}</p>}
+			{error && <p style={{marginTop: "20px", color: "red"}}>Error: {error}</p>}
 
 			<input
 				type="text"
@@ -131,17 +131,25 @@ const FetchJsonComponent: React.FC = () => {
 				}}
 			/>
 
-			<div style={{ marginTop: "10px" }}>
+			<div style={{marginTop: "10px"}}>
 				{loading ? (
-					<button onClick={stopRequest} style={{ padding: "10px", fontSize: "16px", marginRight: "10px", backgroundColor: "red", color: "white" }}>
+					<button onClick={stopRequest} style={{
+						padding: "10px",
+						fontSize: "16px",
+						marginRight: "10px",
+						backgroundColor: "red",
+						color: "white"
+					}}>
 						Cancel
 					</button>
 				) : (
-					<button onClick={sendRequest} disabled={loading} style={{ padding: "10px", fontSize: "16px", marginRight: "10px" }}>
+					<button onClick={sendRequest} disabled={loading}
+					        style={{padding: "10px", fontSize: "16px", marginRight: "10px"}}>
 						Send
 					</button>
 				)}
-				<button onClick={resetForm} style={{ padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white" }}>
+				<button onClick={resetForm}
+				        style={{padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white"}}>
 					Reset
 				</button>
 			</div>
