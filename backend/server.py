@@ -23,7 +23,7 @@ app.add_middleware(
 
 class ChatRequest(BaseModel):
     model: str
-    messages: list[dict[str, str]]
+    message: str
 
 
 @app.get("/")
@@ -36,7 +36,14 @@ def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
 
     def generate() -> Generator[str, None, None]:
-        response = client.chat(model=request.model, messages=request.messages, stream=True)
+        response = client.chat(
+            model=request.model,
+            messages=[
+                {"role": "system", "content": "You are a helpful AI that provides concise and technical answers."},
+                {"role": "user", "content": query}
+            ],
+            stream=True,
+        )
 
         for chunk in response:
             yield chunk['message']['content']
