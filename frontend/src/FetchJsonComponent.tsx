@@ -39,7 +39,7 @@ const FetchJsonComponent: React.FC = () => {
 			<h2>Enter Query</h2>
 			<input
 				type="text"
-				placeholder="Enter your name"
+				placeholder="Enter your query"
 				value={name}
 				onChange={(e) => setName(e.target.value)}
 				style={{padding: "10px", fontSize: "16px", marginRight: "10px"}}
