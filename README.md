@@ -7,14 +7,25 @@ OpenAI, Hugging Face, local LLMs, and more.
 
 Built for flexibility, accessibility, and customization.
 
-## Frontend app
+## Frontend
+
+### Requirements
 
 * node==23
 
+### Setup
+
+* `npm i`
+* `npm run dev`
+
+## Backend
+
 ### Requirements
 
-## Backend app
+* conda/miniconda
 
-### Requirements
+### Setup
 
-* python==3.13
+* `conda create -n oquery python=3.14`
+* `conda activate oquery`
+* `python -m pip install -r requirements.txt`
