@@ -8,6 +8,9 @@ function App() {
 			<header className="App-header">
 				<QueryLlmComponent/>
 			</header>
+			<footer className="footer">
+				<p>Made with love by <a href="https://github.com/javabudd/oquery">javabudd</a></p>
+			</footer>
 		</div>
 	);
 }
