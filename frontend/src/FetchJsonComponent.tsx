@@ -1,9 +1,9 @@
 import {useState} from "react";
 
-const API_URL = "http://localhost:8000/query";
+const API_URL = "http://localhost:6969/query";
 
 const FetchJsonComponent: React.FC = () => {
-	const [name, setName] = useState<string>("");
+	const [query, setQuery] = useState<string>("");
 	const [response, setResponse] = useState<string | null>(null);
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
@@ -11,6 +11,7 @@ const FetchJsonComponent: React.FC = () => {
 	const sendRequest = async () => {
 		setLoading(true);
 		setError(null);
+		console.log(query);
 
 		try {
 			const res = await fetch(API_URL, {
@@ -24,7 +25,7 @@ const FetchJsonComponent: React.FC = () => {
 						messages: [
 							{
 								'role': 'user',
-								'content': 'Why is the sky blue? Keep the answer short.',
+								'content': query
 							},
 						]
 					}
@@ -50,8 +51,8 @@ const FetchJsonComponent: React.FC = () => {
 			<input
 				type="text"
 				placeholder="Enter your query"
-				value={name}
-				onChange={(e) => setName(e.target.value)}
+				value={query}
+				onChange={(e) => setQuery(e.target.value)}
 				style={{padding: "10px", fontSize: "16px", marginRight: "10px"}}
 			/>
 			<button onClick={sendRequest} disabled={loading} style={{padding: "10px", fontSize: "16px"}}>
