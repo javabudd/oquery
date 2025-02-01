@@ -1,4 +1,4 @@
-import {useState} from "react";
+import { useState, useCallback, useRef } from "react";
 
 const API_URL = "http://localhost:6969/query";
 
@@ -7,11 +7,24 @@ const FetchJsonComponent: React.FC = () => {
 	const [response, setResponse] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
+	const controllerRef = useRef<AbortController | null>(null);
 
-	const sendRequest = async () => {
+	const sendRequest = useCallback(async () => {
+		if (!query.trim()) return; // Prevent empty queries
+
 		setLoading(true);
 		setError(null);
 		setResponse(""); // Clear previous response
+
+		// Abort any previous request
+		if (controllerRef.current) {
+			controllerRef.current.abort();
+		}
+
+		const controller = new AbortController();
+		controllerRef.current = controller;
+		const signal = controller.signal;
+
 		console.log("Sending query:", query);
 
 		try {
@@ -22,13 +35,9 @@ const FetchJsonComponent: React.FC = () => {
 				},
 				body: JSON.stringify({
 					model: "deepseek-r1",
-					messages: [
-						{
-							role: "user",
-							content: query,
-						},
-					],
+					messages: [{ role: "user", content: query }],
 				}),
+				signal,
 			});
 
 			if (!res.ok || !res.body) {
@@ -38,39 +47,82 @@ const FetchJsonComponent: React.FC = () => {
 			// Read and process the stream
 			const reader = res.body.getReader();
 			const decoder = new TextDecoder();
+			let result = "";
 
 			while (true) {
-				const {done, value} = await reader.read();
+				const { done, value } = await reader.read();
 				if (done) break;
-				const chunk = decoder.decode(value, {stream: true});
-				setResponse((prev) => prev + chunk); // Append chunk to response
+				result += decoder.decode(value, { stream: true });
+				setResponse(result);
 			}
 		} catch (err) {
-			setError((err as Error).message);
+			if ((err as Error).name !== "AbortError") {
+				setError((err as Error).message);
+			}
 		} finally {
 			setLoading(false);
 		}
+	}, [query]);
+
+	const stopRequest = () => {
+		if (controllerRef.current) {
+			controllerRef.current.abort();
+			controllerRef.current = null;
+		}
+		setLoading(false);
+		setError("Request was stopped.");
 	};
 
 	return (
-		<div style={{padding: "20px", fontFamily: "Arial, sans-serif"}}>
-			<h2>Enter Query</h2>
+		<div style={{ padding: "20px", fontFamily: "Arial, sans-serif", textAlign: "center" }}>
+			<h2>How can we help?</h2>
+
+			{response && (
+				<div
+					style={{
+						marginTop: "20px",
+						color: "green",
+						whiteSpace: "pre-line",
+						textAlign: "center",
+						border: "1px solid #ddd",
+						padding: "10px",
+						borderRadius: "5px",
+						backgroundColor: "#f9f9f9",
+						maxWidth: "600px",
+						margin: "20px auto",
+						overflowWrap: "break-word",
+						wordWrap: "break-word",
+						overflow: "hidden",
+					}}
+				>
+					<strong>Response:</strong> {response}
+				</div>
+			)}
+			{error && <p style={{ marginTop: "20px", color: "red" }}>Error: {error}</p>}
+
 			<input
 				type="text"
 				placeholder="Enter your query"
 				value={query}
 				onChange={(e) => setQuery(e.target.value)}
-				style={{padding: "10px", fontSize: "16px", marginRight: "10px"}}
+				disabled={loading}
+				style={{
+					padding: "10px",
+					fontSize: "16px",
+					marginRight: "10px",
+					width: "80%",
+					maxWidth: "400px",
+				}}
 			/>
-			<button onClick={sendRequest} disabled={loading} style={{padding: "10px", fontSize: "16px"}}>
-				{loading ? "Sending..." : "Send"}
-			</button>
-			{response && (
-				<p style={{marginTop: "20px", color: "green", whiteSpace: "pre-line"}}>
-					<strong>Response:</strong> {response}
-				</p>
-			)}
-			{error && <p style={{marginTop: "20px", color: "red"}}>Error: {error}</p>}
+
+			<div style={{ marginTop: "10px" }}>
+				<button onClick={sendRequest} disabled={loading} style={{ padding: "10px", fontSize: "16px", marginRight: "10px" }}>
+					{loading ? "Sending..." : "Send"}
+				</button>
+				<button onClick={stopRequest} disabled={!loading} style={{ padding: "10px", fontSize: "16px", backgroundColor: "red", color: "white" }}>
+					Stop
+				</button>
+			</div>
 		</div>
 	);
 };
