@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 6970
+      - 6969:6969
 
   nginx:
     depends_on:
@@ -13,8 +13,7 @@ services:
       context: nginx
       dockerfile: Dockerfile
     ports:
-      - 6969:6969
-      - 80:80
+      - 443:443
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - certs:/etc/letsencrypt/live
