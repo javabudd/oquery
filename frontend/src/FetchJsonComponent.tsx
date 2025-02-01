@@ -1,6 +1,6 @@
 import {useState} from "react";
 
-const API_URL = "http://localhost:8000";
+const API_URL = "http://localhost:8000/query";
 
 const FetchJsonComponent: React.FC = () => {
 	const [name, setName] = useState<string>("");
@@ -18,7 +18,17 @@ const FetchJsonComponent: React.FC = () => {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({name}),
+				body: JSON.stringify(
+					{
+						model: 'deepseek-r1',
+						messages: [
+							{
+								'role': 'user',
+								'content': 'Why is the sky blue? Keep the answer short.',
+							},
+						]
+					}
+				),
 			});
 
 			if (!res.ok) {
