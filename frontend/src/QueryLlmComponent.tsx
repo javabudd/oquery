@@ -1,4 +1,4 @@
-import {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = 'llama3.2';
@@ -6,6 +6,7 @@ const DEFAULT_MODEL = 'llama3.2';
 const QueryLlmComponent: React.FC = () => {
 	const [query, setQuery] = useState<string>("");
 	const [model, setModel] = useState<string | null>(null);
+	const [searchEngine, setSearchEngine] = useState<string | null>(null);
 	const [response, setResponse] = useState<string>("");
 	const [loading, setLoading] = useState<boolean>(false);
 	const [error, setError] = useState<string | null>(null);
@@ -156,10 +157,15 @@ const QueryLlmComponent: React.FC = () => {
 				        style={{padding: "10px", fontSize: "16px", backgroundColor: "gray", color: "white"}}>
 					Reset
 				</button>
-				<select onChange={(e) => setModel(e.target.value)} style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
+				<select onChange={(e) => setModel(e.target.value)}
+				        style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
 					<option selected={true} value={"llama3.2"}>Llama 3.2</option>
 					<option value={"phi4"}>phi4</option>
 					<option value={"deepseek-r1"}>DeepSeek-R1</option>
+				</select>
+				<select disabled={true} onChange={(e) => setSearchEngine(e.target.value)}
+				        style={{padding: "10px", fontSize: "16px", marginLeft: "10px"}}>
+					<option selected={true} value={"duckduckgo"}>DuckDuckGo</option>
 				</select>
 			</div>
 		</div>
