@@ -1,27 +1,26 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 
 const API_URL = "https://javabudd.hopto.org/query";
-const DEFAULT_MODEL = 'llama3.2';
-const DEFAULT_SEARCH_ENGINE = 'duckduckgo';
+const DEFAULT_MODEL = "llama3.2";
+const DEFAULT_SEARCH_ENGINE = "duckduckgo";
 
 const QueryLlmComponent: React.FC = () => {
-	const [query, setQuery] = useState<string>("");
-	const [model, setModel] = useState<string | null>(null);
-	const [searchEngine, setSearchEngine] = useState<string | null>(null);
-	const [response, setResponse] = useState<string>("");
-	const [loading, setLoading] = useState<boolean>(false);
+	const [query, setQuery] = useState("");
+	const [model, setModel] = useState<string>(DEFAULT_MODEL);
+	const [searchEngine, setSearchEngine] = useState<string>(DEFAULT_SEARCH_ENGINE);
+	const [response, setResponse] = useState("");
+	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const controllerRef = useRef<AbortController | null>(null);
 	const responseRef = useRef<HTMLDivElement | null>(null);
 
 	const sendRequest = useCallback(async () => {
-		if (!query.trim()) return; // Prevent empty queries
+		if (!query.trim()) return;
 
 		setLoading(true);
 		setError(null);
-		setResponse(""); // Clear previous response
+		setResponse("");
 
-		// Abort any previous request
 		if (controllerRef.current) {
 			controllerRef.current.abort();
 		}
@@ -30,20 +29,13 @@ const QueryLlmComponent: React.FC = () => {
 		controllerRef.current = controller;
 		const signal = controller.signal;
 
-		console.log("Sending query:", query);
-
 		try {
 			const res = await fetch(API_URL, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					model: model ? model : DEFAULT_MODEL,
-					message: query,
-					history: [],
-					searchEngine: searchEngine ? searchEngine : DEFAULT_SEARCH_ENGINE
-				}),
+				body: JSON.stringify({model, message: query, history: [], searchEngine}),
 				signal,
 			});
 
@@ -51,7 +43,6 @@ const QueryLlmComponent: React.FC = () => {
 				throw new Error(`Server error: ${res.statusText}`);
 			}
 
-			// Read and process the stream
 			const reader = res.body.getReader();
 			const decoder = new TextDecoder();
 			let result = "";
@@ -84,10 +75,10 @@ const QueryLlmComponent: React.FC = () => {
 		setQuery("");
 		setResponse("");
 		setError(null);
-		setModel(null);
+		setModel(DEFAULT_MODEL);
+		setSearchEngine(DEFAULT_SEARCH_ENGINE);
 	};
 
-	// Auto-scroll down when response updates
 	useEffect(() => {
 		if (responseRef.current) {
 			responseRef.current.scrollTop = responseRef.current.scrollHeight;
@@ -95,78 +86,33 @@ const QueryLlmComponent: React.FC = () => {
 	}, [response]);
 
 	return (
-		<div style={{padding: "20px", fontFamily: "Arial, sans-serif", textAlign: "center"}}>
-			<h2>How can we help?</h2>
-
-			<div
-				ref={responseRef}
-				style={{
-					marginTop: "20px",
-					color: "green",
-					whiteSpace: "pre-line",
-					textAlign: "center",
-					border: "1px solid #ddd",
-					padding: "10px",
-					borderRadius: "5px",
-					backgroundColor: "#f9f9f9",
-					width: '600px',
-					maxWidth: "600px",
-					margin: "20px auto",
-					overflowWrap: "break-word",
-					wordWrap: "break-word",
-					overflowY: "auto",
-					height: '200px',
-					maxHeight: "400px",
-				}}
-			>
+		<div className="p-5 font-sans text-center max-w-lg mx-auto">
+			<h2 className="text-xl font-bold">How can we help?</h2>
+			<div ref={responseRef}
+			     className="mt-5 text-green-600 whitespace-pre-line text-center border border-gray-300 p-3 rounded-md bg-gray-100 w-full max-w-lg mx-auto overflow-y-auto h-52 max-h-96 break-words">
 				{response && <strong>Response:</strong>}
 				<p>{response}</p>
 			</div>
 
-			{error && <p style={{marginTop: "20px", color: "red"}}>Error: {error}</p>}
-			<input
-				type="text"
-				placeholder="Enter your query"
-				value={query}
-				onChange={(e) => setQuery(e.target.value)}
-				disabled={loading}
-				style={{
-					padding: "10px",
-					marginRight: "10px",
-					width: "80%",
-					maxWidth: "400px",
-				}}
-			/>
+			{error && <p className="mt-5 text-red-500">Error: {error}</p>}
+			<input type="text" placeholder="Enter your query" value={query} onChange={(e) => setQuery(e.target.value)}
+			       disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>
 
-			<div style={{marginTop: "10px"}}>
+			<div className="mt-4 flex flex-wrap justify-center gap-3">
 				{loading ? (
-					<button onClick={stopRequest} style={{
-						padding: "10px",
-						marginRight: "10px",
-						backgroundColor: "red",
-						color: "white"
-					}}>
-						Cancel
-					</button>
+					<button onClick={stopRequest} className="p-2 bg-red-500 text-white rounded-md">Cancel</button>
 				) : (
 					<button onClick={sendRequest} disabled={loading}
-					        style={{padding: "10px", marginRight: "10px"}}>
-						Send
-					</button>
+					        className="p-2 bg-blue-500 text-white rounded-md">Send</button>
 				)}
-				<button onClick={resetForm}
-				        style={{padding: "10px", backgroundColor: "gray", color: "white"}}>
-					Reset
-				</button>
-				<select onChange={(e) => setModel(e.target.value)}
-				        style={{padding: "10px", marginLeft: "10px"}}>
-					<option selected={true} value={"llama3.2"}>Llama 3.2</option>
-					<option value={"phi4"}>phi4</option>
-					<option value={"deepseek-r1"}>DeepSeek-R1</option>
+				<button onClick={resetForm} className="p-2 bg-gray-500 text-white rounded-md">Reset</button>
+				<select onChange={(e) => setModel(e.target.value)} value={model} className="p-2 border rounded-md">
+					<option value="llama3.2">Llama 3.2</option>
+					<option value="phi4">phi4</option>
+					<option value="deepseek-r1">DeepSeek-R1</option>
 				</select>
-				<select disabled={true} onChange={(e) => setSearchEngine(e.target.value)}
-				        style={{padding: "10px", marginLeft: "10px"}}>
-					<option selected={true} value={"duckduckgo"}>DuckDuckGo</option>
+				<select disabled value={searchEngine} className="p-2 border rounded-md">
+					<option value="duckduckgo">DuckDuckGo</option>
 				</select>
 			</div>
 		</div>
