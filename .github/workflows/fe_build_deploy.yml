@@ -3,7 +3,7 @@ name: Build and deploy FE to S3
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
@@ -18,8 +18,9 @@ jobs:
       - name: Set Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 23.x
+          node-version: 20.x
           cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
