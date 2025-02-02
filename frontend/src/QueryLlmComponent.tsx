@@ -9,6 +9,7 @@ const QueryLlmComponent: React.FC = () => {
 	const [model, setModel] = useState<string>(DEFAULT_MODEL);
 	const [searchEngine, setSearchEngine] = useState<string>(DEFAULT_SEARCH_ENGINE);
 	const [response, setResponse] = useState("");
+	const [sections, setSections] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const controllerRef = useRef<AbortController | null>(null);
@@ -19,7 +20,9 @@ const QueryLlmComponent: React.FC = () => {
 
 		setLoading(true);
 		setError(null);
+		setSections((state) => [...state, query.trim()])
 		setResponse("");
+		setQuery("")
 
 		if (controllerRef.current) {
 			controllerRef.current.abort();
@@ -74,28 +77,52 @@ const QueryLlmComponent: React.FC = () => {
 	const resetForm = () => {
 		setQuery("");
 		setResponse("");
+		setSections([])
 		setError(null);
 		setModel(DEFAULT_MODEL);
 		setSearchEngine(DEFAULT_SEARCH_ENGINE);
 	};
 
 	useEffect(() => {
-		if (responseRef.current) {
-			responseRef.current.scrollTop = responseRef.current.scrollHeight;
+		const chatContainer = responseRef?.current;
+
+		if (!chatContainer) return;
+
+		const isAtBottom =
+			chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
+
+		if (isAtBottom) {
+			chatContainer.scrollTop = chatContainer.scrollHeight;
 		}
+
+	}, [response]);
+
+	useEffect(() => {
+		if(!response) return;
+
+		setSections((state) => {
+			const newState = [...state]
+			const lastResponse = state[state.length - 1]
+			if (response.includes(lastResponse)) {
+				newState[state.length - 1] = response
+			} else {
+				newState.push(response)
+			}
+			return newState
+		})
+
 	}, [response]);
 
 	return (
-		<div className="p-5 font-sans text-center max-w-xl mx-auto">
+		<div className="p-5 font-sans text-center mx-auto">
 			<h2 className="text-xl font-bold">How can we help?</h2>
 			<div ref={responseRef}
-			     className="mt-5 text-green-600 whitespace-pre-line text-center border border-gray-300 p-3 rounded-md bg-gray-100 w-full max-w-xl mx-auto overflow-y-auto h-72 max-h-96 break-words">
-				{response && <strong>Response:</strong>}
-				<p>{response}</p>
+			     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-white h-96 overflow-y-auto break-words">
+				{sections.map((message, i) => <p key={i} className={`p-3 rounded-2xl mt-5 w-fit text-left ${i % 2 === 0 ? 'bg-blue-500 self-end' : 'bg-gray-500'}`} >{message}</p>)}
 			</div>
 
 			{error && <p className="mt-5 text-red-500">Error: {error}</p>}
-			<input type="text" placeholder="Enter your query" value={query} onChange={(e) => setQuery(e.target.value)}
+			<textarea placeholder="Enter your query" value={query} onChange={(e) => setQuery(e.target.value)}
 			       disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>
 
 			<div className="mt-4 flex flex-wrap justify-center gap-3">
