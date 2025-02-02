@@ -107,12 +107,12 @@ const QueryLlmComponent: React.FC = () => {
 				)}
 				<button onClick={resetForm} className="p-2 bg-gray-500 text-white rounded-md">Reset</button>
 				<select onChange={(e) => setModel(e.target.value)} value={model} className="p-2 border rounded-md">
-					<option value="llama3.2">Llama 3.2</option>
-					<option value="phi4">phi4</option>
-					<option value="deepseek-r1">DeepSeek-R1 (7b)</option>
+					<option value="llama3.2">Llama 3.2 (3B)</option>
+					<option value="phi4">phi4 (14B)</option>
+					<option value="deepseek-r1">DeepSeek-R1 (7B)</option>
 					<option disabled={true} value="">---- Premium ----</option>
-					<option disabled={true} value="deepseek-r1-70b">DeepSeek-R1 (70b)</option>
-					<option disabled={true} value="llama3.3">Llama 3.3</option>
+					<option disabled={true} value="deepseek-r1-70b">DeepSeek-R1 (70B)</option>
+					<option disabled={true} value="llama3.3">Llama 3.3 (70B)</option>
 				</select>
 				<select disabled value={searchEngine} className="p-2 border rounded-md">
 					<option value="duckduckgo">DuckDuckGo</option>
