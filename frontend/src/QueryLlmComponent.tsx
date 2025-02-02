@@ -86,10 +86,10 @@ const QueryLlmComponent: React.FC = () => {
 	}, [response]);
 
 	return (
-		<div className="p-5 font-sans text-center max-w-lg mx-auto">
+		<div className="p-5 font-sans text-center max-w-xl mx-auto">
 			<h2 className="text-xl font-bold">How can we help?</h2>
 			<div ref={responseRef}
-			     className="mt-5 text-green-600 whitespace-pre-line text-center border border-gray-300 p-3 rounded-md bg-gray-100 w-full max-w-lg mx-auto overflow-y-auto h-52 max-h-96 break-words">
+			     className="mt-5 text-green-600 whitespace-pre-line text-center border border-gray-300 p-3 rounded-md bg-gray-100 w-full max-w-xl mx-auto overflow-y-auto h-72 max-h-96 break-words">
 				{response && <strong>Response:</strong>}
 				<p>{response}</p>
 			</div>
