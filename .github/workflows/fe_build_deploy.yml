@@ -36,4 +36,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload to S3
-        run: aws s3 sync frontend/dist s3://${{ secrets.AWS_BUCKET }} --delete
+        run: aws s3 sync frontend/build s3://${{ secrets.AWS_BUCKET }} --delete
