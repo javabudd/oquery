@@ -1,28 +1,34 @@
 import {useCallback, useEffect, useRef, useState} from "react";
+import {getAllMessages, Message, saveMessage} from "./idb"; // Import IndexDB helpers
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = "llama3.2";
 const DEFAULT_SEARCH_ENGINE = "duckduckgo";
 
 const QueryLlmComponent: React.FC = () => {
-	const [query, setQuery] = useState("");
+	const [message, setMessage] = useState("");
 	const [model, setModel] = useState<string>(DEFAULT_MODEL);
 	const [searchEngine, setSearchEngine] = useState<string>(DEFAULT_SEARCH_ENGINE);
 	const [response, setResponse] = useState("");
 	const [sections, setSections] = useState<string[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [history, setHistory] = useState<Array<Message>>([]);
 	const [error, setError] = useState<string | null>(null);
 	const controllerRef = useRef<AbortController | null>(null);
 	const responseRef = useRef<HTMLDivElement | null>(null);
 
+	useEffect(() => {
+		getAllMessages().then(setHistory);
+	}, []);
+
 	const sendRequest = useCallback(async () => {
-		if (!query.trim()) return;
+		if (!message.trim()) return;
 
 		setLoading(true);
 		setError(null);
-		setSections((state) => [...state, query.trim()])
+		setSections((state) => [...state, message.trim()]);
 		setResponse("");
-		setQuery("")
+		setMessage("");
 
 		if (controllerRef.current) {
 			controllerRef.current.abort();
@@ -32,13 +38,20 @@ const QueryLlmComponent: React.FC = () => {
 		controllerRef.current = controller;
 		const signal = controller.signal;
 
+		const newMessage = {role: "user", content: message};
+
 		try {
 			const res = await fetch(API_URL, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({model, message: query, history: [], searchEngine}),
+				body: JSON.stringify({
+					model,
+					message,
+					searchEngine,
+					history: [...history],
+				}),
 				signal,
 			});
 
@@ -56,6 +69,12 @@ const QueryLlmComponent: React.FC = () => {
 				result += decoder.decode(value, {stream: true});
 				setResponse(result);
 			}
+
+			const assistantResponse = {role: "assistant", content: result};
+
+			await saveMessage(newMessage);
+			await saveMessage(assistantResponse);
+			setHistory(prev => [...prev, newMessage, assistantResponse]);
 		} catch (err) {
 			if ((err as Error).name !== "AbortError") {
 				setError((err as Error).message);
@@ -63,7 +82,8 @@ const QueryLlmComponent: React.FC = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [model, query, searchEngine]);
+	}, [model, message, searchEngine, history]);
+
 
 	const stopRequest = () => {
 		if (controllerRef.current) {
@@ -75,12 +95,13 @@ const QueryLlmComponent: React.FC = () => {
 	};
 
 	const resetForm = () => {
-		setQuery("");
+		setMessage("");
 		setResponse("");
 		setSections([])
 		setError(null);
 		setModel(DEFAULT_MODEL);
 		setSearchEngine(DEFAULT_SEARCH_ENGINE);
+		setHistory([]);
 	};
 
 	useEffect(() => {
@@ -98,7 +119,7 @@ const QueryLlmComponent: React.FC = () => {
 	}, [response]);
 
 	useEffect(() => {
-		if(!response) return;
+		if (!response) return;
 
 		setSections((state) => {
 			const newState = [...state]
@@ -118,12 +139,13 @@ const QueryLlmComponent: React.FC = () => {
 			<h2 className="text-xl font-bold">How can we help?</h2>
 			<div ref={responseRef}
 			     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-white h-96 overflow-y-auto break-words">
-				{sections.map((message, i) => <p key={i} className={`p-3 rounded-2xl mt-5 w-fit text-left ${i % 2 === 0 ? 'bg-blue-500 self-end' : 'bg-gray-500'}`} >{message}</p>)}
+				{sections.map((message, i) => <p key={i}
+				                                 className={`p-3 rounded-2xl mt-5 w-fit text-left ${i % 2 === 0 ? 'bg-blue-500 self-end' : 'bg-gray-500'}`}>{message}</p>)}
 			</div>
 
 			{error && <p className="mt-5 text-red-500">Error: {error}</p>}
-			<textarea placeholder="Enter your query" value={query} onChange={(e) => setQuery(e.target.value)}
-			       disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>
+			<textarea placeholder="Enter your query" value={message} onChange={(e) => setMessage(e.target.value)}
+			          disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>
 
 			<div className="mt-4 flex flex-wrap justify-center gap-3">
 				{loading ? (
