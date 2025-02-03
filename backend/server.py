@@ -38,26 +38,30 @@ async def root():
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
 
+    for history_item in request.history:
+        if "role" not in history_item:
+            history_item["role"] = "user"
+
+    messages = [
+                   {
+                       "role": "system",
+                       "content": (
+                           "You are an AI-powered search engine that provides factual, concise, and highly "
+                           "relevant answers based on known information."
+                           "You prioritize accuracy, direct responses, and trusted sources. "
+                           "When possible, summarize key points for clarity. "
+                           "Do not speculate or provide unverified claims. "
+                           "If an answer requires real-time data, indicate that external sources are necessary. "
+                           "If you cannot find a reliable answer, respond with 'UNSURE'. "
+                           "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
+                           "facts."
+                       )
+                   }
+               ] + request.history
+
+    messages.append({"role": "user", "content": request.message})
+
     def generate() -> Generator[str, None, None]:
-        messages = [
-                       {
-                           "role": "system",
-                           "content": (
-                               "You are an AI-powered search engine that provides factual, concise, and highly "
-                               "relevant answers based on known information."
-                               "You prioritize accuracy, direct responses, and trusted sources. "
-                               "When possible, summarize key points for clarity. "
-                               "Do not speculate or provide unverified claims. "
-                               "If an answer requires real-time data, indicate that external sources are necessary. "
-                               "If you cannot find a reliable answer, respond with 'UNSURE'. "
-                               "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
-                               "facts."
-                           )
-                       }
-                   ] + request.history
-
-        messages.append({"role": "user", "content": request.message})
-
         response = client.chat(
             model=request.model,
             messages=messages,
@@ -66,13 +70,8 @@ def query(request: ChatRequest):
 
         for chunk in response:
             message = chunk["message"]
-
-            # Ensure we capture the assistant's response
             if message["role"] == "assistant":
                 yield message["content"]
-                messages.append(message)
-
-            # Handle tool calls dynamically
             elif message["role"] == "tool":
                 tool_output = _handle_tool_call(message["content"])
                 messages.append({"role": "tool", "content": tool_output})
@@ -100,4 +99,8 @@ def _handle_tool_call(tool_request: str) -> str:
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=6969)
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=6969,
+    )

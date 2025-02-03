@@ -12,6 +12,7 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "aws-rum-web": "^1.19.0",
+    "idb": "^8.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-scripts": "5.0.1",
