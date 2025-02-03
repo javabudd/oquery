@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from "react";
-import {getAllMessages, Message, saveMessage} from "./idb"; // Import IndexDB helpers
+import {getAllMessages, Message, saveMessage, clearHistory} from "./idb";
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = "llama3.2";
@@ -94,7 +94,7 @@ const QueryLlmComponent: React.FC = () => {
 		setError("Request was cancelled.");
 	};
 
-	const resetForm = () => {
+	const resetForm = async () => {
 		setMessage("");
 		setResponse("");
 		setSections([])
@@ -102,6 +102,7 @@ const QueryLlmComponent: React.FC = () => {
 		setModel(DEFAULT_MODEL);
 		setSearchEngine(DEFAULT_SEARCH_ENGINE);
 		setHistory([]);
+		await clearHistory();
 	};
 
 	useEffect(() => {
