@@ -6,16 +6,16 @@ import './App.css';
 try {
 	const config: AwsRumConfig = {
 		sessionSampleRate: 1,
-		identityPoolId: process.env.AWS_RUM_IDENTITY_POOL_ID,
+		identityPoolId: process.env.REACT_APP_AWS_RUM_IDENTITY_POOL_ID,
 		endpoint: "https://dataplane.rum.us-west-2.amazonaws.com",
 		telemetries: ["performance", "errors", "http"],
 		allowCookies: true,
 		enableXRay: false
 	};
 
-	const APPLICATION_ID: string = process.env.AWS_RUM_APPLICATION_ID ?? '0';
+	const APPLICATION_ID: string = process.env.REACT_APP_AWS_RUM_APPLICATION_ID ?? '0';
 	const APPLICATION_VERSION: string = '1.0.0';
-	const APPLICATION_REGION: string = process.env.AWS_RUM_REGION ?? '0';
+	const APPLICATION_REGION: string = process.env.REACT_APP_AWS_RUM_REGION ?? '0';
 
 	new AwsRum(
 		APPLICATION_ID,
