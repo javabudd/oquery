@@ -26,7 +26,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Run production build
-        run: yarn build
+        run: REACT_APP_AWS_RUM_APPLICATION_ID=${{ secrets.REACT_APP_AWS_RUM_APPLICATION_ID }} REACT_APP_AWS_RUM_IDENTITY_POOL_ID=${{ secrets.REACT_APP_AWS_RUM_IDENTITY_POOL_ID }} REACT_APP_AWS_RUM_REGION=${{ secrets.REACT_APP_AWS_RUM_REGION }} yarn build
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
