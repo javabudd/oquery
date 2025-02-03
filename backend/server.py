@@ -19,7 +19,6 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
     allow_headers=["*"],  # Allows Content-Type, Authorization, etc.
-    expose_headers=["X-Chat-History"],
 )
 
 
