@@ -42,7 +42,23 @@ def query(request: ChatRequest):
         if "role" not in history_item:
             history_item["role"] = "user"
 
-    messages = [{"role": "system", "content": "Do whatever it takes to respond to the user."}] + request.history
+    messages = [
+                   {
+                       "role": "system",
+                       "content": (
+                           "You are an AI-powered search engine that provides factual, concise, and highly "
+                           "relevant answers based on known information."
+                           "You prioritize accuracy, direct responses, and trusted sources. "
+                           "When possible, summarize key points for clarity. "
+                           "Do not speculate or provide unverified claims. "
+                           "If an answer requires real-time data, indicate that external sources are necessary. "
+                           "If you cannot find a reliable answer, respond with 'UNSURE'. "
+                           "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
+                           "facts."
+                       )
+                   }
+               ] + request.history
+
     messages.append({"role": "user", "content": request.message})
 
     def generate() -> Generator[str, None, None]:
