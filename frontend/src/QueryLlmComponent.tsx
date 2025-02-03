@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from "react";
-import {getAllMessages, Message, saveMessage, clearHistory} from "./idb";
+import {clearHistory, getMessagesByConversation, Message, saveMessage} from "./idb";
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = "llama3.2";
@@ -18,7 +18,12 @@ const QueryLlmComponent: React.FC = () => {
 	const responseRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
-		getAllMessages().then(setHistory);
+		getMessagesByConversation("123").then((history) => {
+			setHistory(history);
+			for (const item of history) {
+				setSections((state) => [...state, item.content.trim()]);
+			}
+		});
 	}, []);
 
 	const sendRequest = useCallback(async () => {
@@ -38,7 +43,7 @@ const QueryLlmComponent: React.FC = () => {
 		controllerRef.current = controller;
 		const signal = controller.signal;
 
-		const newMessage = {role: "user", content: message};
+		const newMessage = {role: "user", content: message, conversation_id: "123"};
 
 		try {
 			const res = await fetch(API_URL, {
@@ -70,7 +75,7 @@ const QueryLlmComponent: React.FC = () => {
 				setResponse(result);
 			}
 
-			const assistantResponse = {role: "assistant", content: result};
+			const assistantResponse = {role: "assistant", content: result, conversation_id: "123"};
 
 			await saveMessage(newMessage);
 			await saveMessage(assistantResponse);
