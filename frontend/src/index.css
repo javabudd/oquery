@@ -23,7 +23,7 @@ body {
 }
 
 .footer a {
-  @apply text-white no-underline hover:underline;
+  @apply no-underline hover:underline;
 }
 
 /* Buttons */

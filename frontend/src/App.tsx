@@ -33,7 +33,8 @@ function App() {
 			<header className="App-header"></header>
 			<QueryLlmComponent/>
 			<footer className="footer">
-				<p>Made with love by <a href="https://github.com/javabudd/oquery">javabudd</a></p>
+				<p>Made with love by <a className={"text-cyan-500"} href="https://github.com/javabudd/oquery">javabudd</a></p>
+				<p>Donate BTC🪙 3JP39ERGzkMEfXzWo672LdZCTjRphw9mdD</p>
 			</footer>
 		</div>
 	);
