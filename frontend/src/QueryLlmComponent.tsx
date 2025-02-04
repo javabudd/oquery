@@ -8,6 +8,7 @@ const DEFAULT_SEARCH_ENGINE = "duckduckgo";
 const QueryLlmComponent: React.FC = () => {
 	const [message, setMessage] = useState("");
 	const [model, setModel] = useState<string>(DEFAULT_MODEL);
+	const [systemContent, setSystemContent] = useState<string | undefined>(undefined);
 	const [searchEngine, setSearchEngine] = useState<string>(DEFAULT_SEARCH_ENGINE);
 	const [response, setResponse] = useState("");
 	const [sections, setSections] = useState<string[]>([]);
@@ -56,6 +57,7 @@ const QueryLlmComponent: React.FC = () => {
 					message,
 					searchEngine,
 					history: [...history],
+					systemContent
 				}),
 				signal,
 			});
@@ -87,7 +89,7 @@ const QueryLlmComponent: React.FC = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [model, message, searchEngine, history]);
+	}, [model, message, searchEngine, history, systemContent]);
 
 
 	const stopRequest = () => {
@@ -107,6 +109,7 @@ const QueryLlmComponent: React.FC = () => {
 		setModel(DEFAULT_MODEL);
 		setSearchEngine(DEFAULT_SEARCH_ENGINE);
 		setHistory([]);
+		setSystemContent(undefined);
 		await clearHistory();
 	};
 

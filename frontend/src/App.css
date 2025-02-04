@@ -5,10 +5,10 @@
   width: 100%;
   padding: 10px;
   text-align: center;
+  font-size: 11px;
 }
 
 .footer a {
-  /*color: #fff;*/
   text-decoration: none;
 }
 
