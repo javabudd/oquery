@@ -172,9 +172,9 @@ const QueryLlmComponent: React.FC = () => {
 					<option disabled={true} value="deepseek-r1-70b">DeepSeek-R1 (70B)</option>
 					<option disabled={true} value="llama3.3">Llama 3.3 (70B)</option>
 				</select>
-				<select disabled value={searchEngine} className="p-2 border rounded-md">
-					<option value="duckduckgo">DuckDuckGo</option>
-				</select>
+				{/*<select disabled value={searchEngine} className="p-2 border rounded-md">*/}
+				{/*	<option value="duckduckgo">DuckDuckGo</option>*/}
+				{/*</select>*/}
 			</div>
 		</div>
 	);
