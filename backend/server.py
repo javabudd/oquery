@@ -50,8 +50,7 @@ def query(request: ChatRequest):
             "When possible, summarize key points for clarity. "
             "Do not speculate or provide unverified claims. "
             "If an answer requires real-time data, indicate that external sources are necessary. "
-            "If you cannot find a reliable answer, respond with 'UNSURE'. "
-            "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
+            "Do not generate opinions, predictions, or subjective analysis—only. Present verifiable "
             "facts."
         )
 
@@ -86,15 +85,13 @@ def query(request: ChatRequest):
             stream=True,
         )
 
+        assistant_response = ''
         for chunk in response:
             message = chunk["message"]
             if message["role"] == "assistant":
                 content = message["content"]
-                if "I don't know" in response or "I'm not sure" in content:
-                    ddg_results = generate_duckduckgo_search(request.message)
-                    yield f"\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}"
-                else:
-                    yield content
+                yield content
+                assistant_response += content
 
             elif message["role"] == "tool":
                 tool_output = _handle_tool_call(message["content"])
@@ -105,6 +102,10 @@ def query(request: ChatRequest):
                 for follow_up_chunk in follow_up_response:
                     yield follow_up_chunk["message"]["content"]
                     messages.append(follow_up_chunk["message"])
+
+        if "I don't have real-time access" in assistant_response or "don't have real-time access" in assistant_response:
+            ddg_results = generate_duckduckgo_search(request.message)
+            yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
 
     return StreamingResponse(generate(), media_type="text/plain")
 
