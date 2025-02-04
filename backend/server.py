@@ -4,6 +4,7 @@ from typing import List
 
 import uvicorn
 from dotenv import load_dotenv
+from duckduckgo_search import DDGS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -67,6 +68,17 @@ def query(request: ChatRequest):
 
     messages.append({"role": "user", "content": request.message})
 
+    def generate_duckduckgo_search(ddg_query: str) -> str:
+        """Query DuckDuckGo and return formatted search results."""
+        try:
+            with DDGS() as ddgs:
+                results = ddgs.text(ddg_query, max_results=3)  # Get top 3 results
+            if results:
+                return "\n".join([f"{r['title']} - {r['href']}" for r in results])
+            return "No relevant DuckDuckGo results found."
+        except Exception as e:
+            return f"Failed to search with DuckDuckGo: {str(e)}"
+
     def generate() -> Generator[str, None, None]:
         response = client.chat(
             model=request.model,
@@ -77,7 +89,13 @@ def query(request: ChatRequest):
         for chunk in response:
             message = chunk["message"]
             if message["role"] == "assistant":
-                yield message["content"]
+                content = message["content"]
+                if "I don't know" in response or "I'm not sure" in content:
+                    ddg_results = generate_duckduckgo_search(request.message)
+                    yield f"\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}"
+                else:
+                    yield content
+
             elif message["role"] == "tool":
                 tool_output = _handle_tool_call(message["content"])
                 messages.append({"role": "tool", "content": tool_output})
