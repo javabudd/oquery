@@ -27,6 +27,7 @@ class ChatRequest(BaseModel):
     message: str
     searchEngine: str = None
     history: List[dict] = []
+    systemContent: str = None
 
 
 @app.get("/")
@@ -38,6 +39,21 @@ async def root():
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
 
+    if request.systemContent:
+        system_content = request.systemContent
+    else:
+        system_content = (
+            "You are an AI-powered search engine that provides factual, concise, and highly "
+            "relevant answers based on known information."
+            "You prioritize accuracy, direct responses, and trusted sources. "
+            "When possible, summarize key points for clarity. "
+            "Do not speculate or provide unverified claims. "
+            "If an answer requires real-time data, indicate that external sources are necessary. "
+            "If you cannot find a reliable answer, respond with 'UNSURE'. "
+            "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
+            "facts."
+        )
+
     for history_item in request.history:
         if "role" not in history_item:
             history_item["role"] = "user"
@@ -45,17 +61,7 @@ def query(request: ChatRequest):
     messages = [
                    {
                        "role": "system",
-                       "content": (
-                           "You are an AI-powered search engine that provides factual, concise, and highly "
-                           "relevant answers based on known information."
-                           "You prioritize accuracy, direct responses, and trusted sources. "
-                           "When possible, summarize key points for clarity. "
-                           "Do not speculate or provide unverified claims. "
-                           "If an answer requires real-time data, indicate that external sources are necessary. "
-                           "If you cannot find a reliable answer, respond with 'UNSURE'. "
-                           "Do not generate opinions, predictions, or subjective analysis—only present verifiable "
-                           "facts."
-                       )
+                       "content": system_content
                    }
                ] + request.history
 
