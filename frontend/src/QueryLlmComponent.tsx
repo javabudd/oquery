@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from "react";
 import {clearHistory, getMessagesByConversation, Message, saveMessage} from "./idb";
+import ChatComponent from "./ChatComponent";
 
 const API_URL = "https://javabudd.hopto.org/query";
 const DEFAULT_MODEL = "llama3.2";
@@ -146,12 +147,7 @@ const QueryLlmComponent: React.FC = () => {
 	return (
 		<div className="p-5 font-sans text-center mx-auto">
 			<h2 className="text-xl font-bold">How can we help?</h2>
-			<div ref={responseRef}
-			     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-white h-96 overflow-y-auto break-words">
-				{sections.map((message, i) => <p key={i}
-				                                 className={`p-3 rounded-2xl mt-5 w-fit text-left ${i % 2 === 0 ? 'bg-blue-500 self-end' : 'bg-gray-500'}`}>{message}</p>)}
-			</div>
-
+			<ChatComponent sections={sections}/>
 			{error && <p className="mt-5 text-red-500">Error: {error}</p>}
 			<textarea placeholder="Enter your query" value={message} onChange={(e) => setMessage(e.target.value)}
 			          disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>

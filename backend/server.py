@@ -103,7 +103,9 @@ def query(request: ChatRequest):
                     yield follow_up_chunk["message"]["content"]
                     messages.append(follow_up_chunk["message"])
 
-        if "I don't have real-time access" in assistant_response or "don't have real-time access" in assistant_response:
+        if ("I don't have real-time access" in assistant_response or
+                "don't have real-time access" in assistant_response or
+                "do not have real-time access" in assistant_response):
             ddg_results = generate_duckduckgo_search(request.message)
             yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
 
