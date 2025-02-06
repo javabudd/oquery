@@ -31,6 +31,7 @@ UNCERTAIN_RESPONSES = [
     "I don't have real-time access to current schedules or future events",
     "I don't have real-time access to current events or schedules",
     "I'm not capable of providing real-time information",
+    "I don't have real-time access to current information",
 ]
 
 load_dotenv()
