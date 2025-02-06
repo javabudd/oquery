@@ -10,10 +10,27 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from ollama import Client
 from pydantic import BaseModel
+from sentence_transformers import SentenceTransformer, util
 
 load_dotenv()
-app = FastAPI()
 
+UNCERTAIN_RESPONSES = [
+    "I'm not sure about that.",
+    "I don't have access to real-time information.",
+    "You might need to check a reliable source for that.",
+    "Sorry, I can't provide a definitive answer.",
+    "I'm uncertain about that.",
+    "It’s unclear at the moment.",
+    "You can check a weather website for the latest updates.",
+    "Please refer to official sources for accurate information.",
+    "I'm unable to retrieve real-time data.",
+    "Consider checking an external service for the latest results.",
+    "I recommend using a mobile app or a weather website.",
+    "I don't have direct access to live information.",
+    "You should check trusted sources for the most up-to-date answer."
+]
+
+app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,6 +38,8 @@ app.add_middleware(
     allow_methods=["*"],  # Allows GET, POST, OPTIONS, etc.
     allow_headers=["*"],  # Allows Content-Type, Authorization, etc.
 )
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 class ChatRequest(BaseModel):
@@ -103,13 +122,22 @@ def query(request: ChatRequest):
                     yield follow_up_chunk["message"]["content"]
                     messages.append(follow_up_chunk["message"])
 
-        if ("I don't have real-time access" in assistant_response or
-                "don't have real-time access" in assistant_response or
-                "do not have real-time access" in assistant_response):
+        if _is_uncertain(assistant_response):
             ddg_results = generate_duckduckgo_search(request.message)
             yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
 
     return StreamingResponse(generate(), media_type="text/plain")
+
+
+def _is_uncertain(response: str) -> bool:
+    """Check if response is uncertain using sentence similarity."""
+    response_embedding = model.encode(response, convert_to_tensor=True)
+    uncertain_embeddings = model.encode(UNCERTAIN_RESPONSES, convert_to_tensor=True)
+
+    similarity_scores = util.pytorch_cos_sim(response_embedding, uncertain_embeddings)
+    max_similarity = similarity_scores.max().item()
+
+    return max_similarity > 0.55
 
 
 def _handle_tool_call(tool_request: str) -> str:
