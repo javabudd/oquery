@@ -33,6 +33,7 @@ UNCERTAIN_RESPONSES = [
     "I'm not capable of providing real-time information",
     "I don't have real-time access to current information",
     "I do not have real-time access to current events or schedules",
+    "I'm a large language model, I don't have real-time access",
 ]
 
 load_dotenv()
