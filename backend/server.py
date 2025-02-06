@@ -8,6 +8,7 @@ from duckduckgo_search import DDGS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.logger import logger
 from ollama import Client
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
@@ -139,7 +140,7 @@ def _is_uncertain(response: str) -> bool:
     similarity_scores = util.pytorch_cos_sim(response_embedding, uncertain_embeddings)
     max_similarity = similarity_scores.max().item()
 
-    print(f"Sentence uncertainty: {max_similarity}")
+    logger.info(f"Sentence uncertainty: {max_similarity}")
 
     return max_similarity > 0.55
 
@@ -148,7 +149,7 @@ def _handle_tool_call(tool_request: str) -> str:
     """Process tool calls (e.g., API requests) and return data."""
 
     if 'UNSURE' in tool_request:
-        print('detected UNSURE in assistant response, lets dig deeper...')
+        logger.info('detected UNSURE in assistant response, lets dig deeper...')
         return '{"deep_dive": "1"}'
     elif "stock price" in tool_request:
         return '{"AAPL": "178.90 USD"}'
