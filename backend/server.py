@@ -140,7 +140,7 @@ def query(request: ChatRequest):
 
 def _is_uncertain(response: str) -> bool:
     """Check if response is uncertain using sentence similarity."""
-    response_embedding = model.encode(response, convert_to_tensor=True)
+    response_embedding = model.encode(response[:75], convert_to_tensor=True)
     uncertain_embeddings = model.encode(UNCERTAIN_RESPONSES, convert_to_tensor=True)
 
     similarity_scores = util.pytorch_cos_sim(response_embedding, uncertain_embeddings)
@@ -148,7 +148,7 @@ def _is_uncertain(response: str) -> bool:
 
     logger.info(f"Sentence uncertainty: {max_similarity}")
 
-    return max_similarity > 0.52
+    return max_similarity > 0.7
 
 
 def _handle_tool_call(tool_request: str) -> str:
