@@ -28,7 +28,8 @@ UNCERTAIN_RESPONSES = [
     "I don't have direct access to live information.",
     "You should check trusted sources for the most up-to-date answer.",
     "I'm a text-based AI assistant and do not have real-time access",
-    "I don't have real-time access to"
+    "I don't have real-time access to current schedules or future events",
+    "I don't have real-time access to current events or schedules",
 ]
 
 load_dotenv()
@@ -142,7 +143,7 @@ def _is_uncertain(response: str) -> bool:
 
     logger.info(f"Sentence uncertainty: {max_similarity}")
 
-    return max_similarity > 0.55
+    return max_similarity > 0.52
 
 
 def _handle_tool_call(tool_request: str) -> str:
