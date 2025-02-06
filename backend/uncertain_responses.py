@@ -12,5 +12,6 @@ UNCERTAIN_RESPONSES = [
     "I recommend using a mobile app or a weather website.",
     "I don't have direct access to live information.",
     "You should check trusted sources for the most up-to-date answer.",
-    "I'm a text-based AI assistant and do not have real-time access"
+    "I'm a text-based AI assistant and do not have real-time access",
+    "I don't have real-time access to"
 ]
