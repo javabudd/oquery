@@ -139,6 +139,8 @@ def _is_uncertain(response: str) -> bool:
     similarity_scores = util.pytorch_cos_sim(response_embedding, uncertain_embeddings)
     max_similarity = similarity_scores.max().item()
 
+    print(f"Sentence uncertainty: {max_similarity}")
+
     return max_similarity > 0.55
 
 
