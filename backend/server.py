@@ -148,7 +148,7 @@ def _is_uncertain(response: str) -> bool:
 
     logger.info(f"Sentence uncertainty: {max_similarity}")
 
-    return max_similarity > 0.7
+    return max_similarity > 0.55
 
 
 def _handle_tool_call(tool_request: str) -> str:
