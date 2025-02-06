@@ -30,6 +30,7 @@ UNCERTAIN_RESPONSES = [
     "I'm a text-based AI assistant and do not have real-time access",
     "I don't have real-time access to current schedules or future events",
     "I don't have real-time access to current events or schedules",
+    "I'm not capable of providing real-time information",
 ]
 
 load_dotenv()
