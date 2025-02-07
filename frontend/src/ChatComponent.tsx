@@ -41,6 +41,10 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 		setProcessedMessages(newMessages);
 	}, [sections, buffer]);
 
+	if (processedMessages.length === 0) {
+		return (<></>);
+	}
+
 	return (
 		<div ref={responseRef}
 		     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-white h-96 overflow-y-auto break-words">

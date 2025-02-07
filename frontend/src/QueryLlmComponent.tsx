@@ -149,8 +149,19 @@ const QueryLlmComponent: React.FC = () => {
 			<h2 className="text-xl font-bold">How can we help?</h2>
 			<ChatComponent sections={sections}/>
 			{error && <p className="mt-5 text-red-500">Error: {error}</p>}
-			<textarea placeholder="Enter your query" value={message} onChange={(e) => setMessage(e.target.value)}
-			          disabled={loading} className="p-2 mt-4 w-full max-w-md border rounded-md"/>
+			<textarea
+				placeholder="Enter your query"
+				value={message}
+				onChange={(e) => setMessage(e.target.value)}
+				onKeyDown={async (e) => {
+					if (e.key === "Enter" && !e.shiftKey) {
+						e.preventDefault(); // Prevents newline in textarea
+						await sendRequest();
+					}
+				}}
+				disabled={loading}
+				className="p-2 mt-4 w-full max-w-md border rounded-md"
+			/>
 
 			<div className="mt-4 flex flex-wrap justify-center gap-3">
 				{loading ? (
