@@ -13,7 +13,7 @@ type NewMessage = {
 }
 
 const ChatComponent = ({sections}: ChatComponentProps) => {
-	const responseRef = useRef(null);
+	const responseRef = useRef<HTMLDivElement | null>(null);
 	const [buffer, setBuffer] = useState("");
 	const [processedMessages, setProcessedMessages] = useState<Array<NewMessage>>([]);
 
@@ -40,6 +40,20 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 		setBuffer(tempBuffer);
 		setProcessedMessages(newMessages);
 	}, [sections, buffer]);
+
+	useEffect(() => {
+		const chatContainer = responseRef?.current;
+
+		if (!chatContainer) return;
+
+		const isAtBottom =
+			chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
+
+		if (isAtBottom) {
+			chatContainer.scrollTop = chatContainer.scrollHeight;
+		}
+
+	}, [sections]);
 
 	if (processedMessages.length === 0) {
 		return (<></>);

@@ -17,7 +17,6 @@ const QueryLlmComponent: React.FC = () => {
 	const [history, setHistory] = useState<Array<Message>>([]);
 	const [error, setError] = useState<string | null>(null);
 	const controllerRef = useRef<AbortController | null>(null);
-	const responseRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
 		getMessagesByConversation("123").then((history) => {
@@ -113,20 +112,6 @@ const QueryLlmComponent: React.FC = () => {
 		setSystemContent(undefined);
 		await clearHistory();
 	};
-
-	useEffect(() => {
-		const chatContainer = responseRef?.current;
-
-		if (!chatContainer) return;
-
-		const isAtBottom =
-			chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
-
-		if (isAtBottom) {
-			chatContainer.scrollTop = chatContainer.scrollHeight;
-		}
-
-	}, [response]);
 
 	useEffect(() => {
 		if (!response) return;
