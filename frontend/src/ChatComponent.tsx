@@ -61,7 +61,7 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 
 	return (
 		<div ref={responseRef}
-		     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-white h-96 overflow-y-auto break-words">
+		     className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 h-96 overflow-y-auto break-words">
 			{processedMessages.map((message, i) => {
 				if (message.type === "code") {
 					return (
