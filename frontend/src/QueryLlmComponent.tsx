@@ -3,7 +3,7 @@ import {clearHistory, getMessagesByConversation, Message, saveMessage} from "./i
 import ChatComponent from "./ChatComponent";
 
 const API_URL = "https://javabudd.hopto.org/query";
-const DEFAULT_MODEL = "llama3.2";
+const DEFAULT_MODEL = "llama3.1";
 const DEFAULT_SEARCH_ENGINE = "duckduckgo";
 
 const QueryLlmComponent: React.FC = () => {
