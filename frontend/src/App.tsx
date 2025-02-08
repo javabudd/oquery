@@ -1,7 +1,6 @@
 import {AwsRum, AwsRumConfig} from 'aws-rum-web';
 import React from 'react';
 import QueryLlmComponent from "./QueryLlmComponent";
-import './App.css';
 
 try {
 	const config: AwsRumConfig = {
@@ -29,7 +28,7 @@ try {
 
 function App() {
 	return (
-		<div className="App">
+		<div>
 			<header className="App-header"></header>
 			<QueryLlmComponent/>
 			<footer className="footer">

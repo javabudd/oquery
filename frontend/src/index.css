@@ -7,19 +7,9 @@ body {
   @apply font-sans bg-gray-50 text-gray-900;
 }
 
-/* App Wrapper */
-.app {
-  @apply text-center;
-}
-
-/* Header */
-.app-header {
-  @apply bg-gray-900 min-h-screen flex flex-col items-center justify-center text-white text-lg;
-}
-
 /* Footer */
 .footer {
-  @apply fixed bottom-0 left-0 w-full p-3 text-center bg-gray-800 text-white;
+  @apply fixed bottom-0 left-0 w-full text-center bg-gray-800 text-white p-0 text-xs;
 }
 
 .footer a {

@@ -1,7 +1,8 @@
 import React, {useEffect, useRef, useState} from "react";
 import {Light as SyntaxHighlighter} from "react-syntax-highlighter";
-import {materialDark} from "react-syntax-highlighter/dist/esm/styles/prism";
+import {a11yDark} from "react-syntax-highlighter/dist/esm/styles/prism";
 import Linkify from "linkify-react";
+import CopyToClipboard from 'react-copy-to-clipboard';
 
 type ChatComponentProps = {
 	sections: Array<string>;
@@ -71,21 +72,27 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 	return (
 		<div
 			ref={responseRef}
-			className="mt-5 flex flex-col text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 h-96 overflow-y-auto break-words"
+			className="mt-5 mx-auto flex flex-col max-h-screen max-w-screen-md text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 overflow-y-auto break-words"
 		>
 			{processedMessages.map((message, i) => {
 				if (message.type === "code") {
 					return (
-						<SyntaxHighlighter
-							language={message.language}
-							style={materialDark}
-							key={i}
-							className=""
-							showLineNumbers={true}
-							wrapLongLines={true}
-						>
-							{message.content}
-						</SyntaxHighlighter>
+						<div key={i} className="flex flex-row items-center mb-4">
+							<SyntaxHighlighter
+								language={message.language}
+								style={a11yDark}
+								showLineNumbers={true}
+								wrapLongLines={true}
+								className="max-h-50 rounded-sm"
+							>
+								{message.content}
+							</SyntaxHighlighter>
+							<CopyToClipboard text={message.content}>
+								<button className="ml-4 p-2 bg-gray-600 rounded-sm hover:bg-gray-700">
+									Copy
+								</button>
+							</CopyToClipboard>
+						</div>
 					);
 				}
 				return (
