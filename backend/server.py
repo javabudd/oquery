@@ -136,7 +136,7 @@ def query(request: ChatRequest):
             model=request.model,
             messages=messages,
             stream=True,
-            tools=list(available_functions.keys())
+            tools=[{"name": name, "function": func} for name, func in available_functions.items()]
         )
 
         assistant_response = ""
