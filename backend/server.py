@@ -136,29 +136,41 @@ def query(request: ChatRequest):
             model=request.model,
             messages=messages,
             stream=True,
-            tools=[lookup_nba_schedule]
-
+            tools=list(available_functions.keys())
         )
 
         assistant_response = ""
 
         for chunk in response:
             message = chunk["message"]
-            if 'tool_calls' in message and message['tool_calls'] is not None:
-                logger.info(message)
-                for tool in message['tool_calls']:
-                    if function_to_call := available_functions.get(tool.function.name):
-                        logger.info('Calling function:', tool.function.name)
-                        logger.info('Arguments:', tool.function.arguments)
-                        tool_response = function_to_call(**tool.function.arguments)
-                        logger.info('Function output:', tool_response)
-                    else:
-                        tool_response = 'Could not retrieve more information.'
-                        logger.info('Function', tool.function.name, 'not found')
 
-                    # Append tool response and let AI process it
-                    messages.append({'role': 'tool', 'content': str(tool_response), 'name': tool.function.name})
+            if "tool_calls" in message and message["tool_calls"] is not None:
+                for tool in message["tool_calls"]:
+                    function_name = tool.get("function", {}).get("name")
+
+                    if not function_name:
+                        logger.warning("Received a tool call request without a function name.")
+                        continue
+
+                    function_to_call = available_functions.get(function_name)
+
+                    if function_to_call:
+                        try:
+                            tool_args = tool.get("function", {}).get("arguments", {})
+                            logger.info(f"Calling function: {function_name} with args: {tool_args}")
+                            tool_response = function_to_call(**tool_args)
+                            logger.info(f"Function output: {tool_response}")
+                        except Exception as e:
+                            tool_response = f"Error executing function: {str(e)}"
+                            logger.error(f"Error executing function {function_name}: {str(e)}")
+                    else:
+                        tool_response = f"Requested tool '{function_name}' not found."
+                        logger.warning(f"Tool '{function_name}' was requested but does not exist.")
+
+                    # Append tool response so AI can continue processing
+                    messages.append({"role": "tool", "content": str(tool_response), "name": function_name})
                     follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
+
                     for follow_up_chunk in follow_up_response:
                         yield follow_up_chunk["message"]["content"]
                         assistant_response += follow_up_chunk["message"]["content"]
