@@ -75,7 +75,7 @@ def _is_uncertain(response: str) -> bool:
     return max_similarity > 0.53
 
 
-def lookup_nba_schedule(date: str, team_name: str) -> str:
+def lookup_nba_schedule(team_name: str, date: str) -> str:
     """Fetch NBA schedule from an API."""
     url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key=YOUR_NBA_API_KEY"
 
@@ -99,6 +99,28 @@ def lookup_nba_schedule(date: str, team_name: str) -> str:
         return f"Failed to fetch NBA schedule: {str(e)}"
 
 
+lookup_nba_schedule_def = {
+    'type': 'function',
+    'function': {
+        'name': 'lookup_nba_schedule',
+        'description': 'Lookup an NBA team\'s schedule. Only use this function when the user is asking about an NBA '
+                       'schedule',
+        'parameters': {
+            'type': 'object',
+            'required': ['team_name'],
+            'properties': {
+                'team_name': {'type': 'string', 'description': 'The name of the NBA team to search for'},
+                'date': {'type': 'string', 'description': 'The start date of the NBA schedule lookup.'},
+            },
+        },
+    },
+}
+
+available_functions = {
+    'lookup_nba_schedule': lookup_nba_schedule,
+}
+
+
 @app.post('/query')
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
@@ -110,8 +132,7 @@ def query(request: ChatRequest):
             "You are oQuery, a helpful and knowledgeable AI assistant. You provide clear, concise, "
             "and accurate answers while maintaining a conversational and engaging tone. You adapt your "
             "responses to the user’s style and preferences. You prioritize useful and actionable "
-            "information. You only use tools if the user requests data that is 'current-event-like`."
-            "You Follow ethical guidelines, avoid biases, and respect privacy."
+            "information. You Follow ethical guidelines, avoid biases, and respect privacy."
         )
 
     for history_item in request.history:
@@ -127,17 +148,12 @@ def query(request: ChatRequest):
 
     messages.append({"role": "user", "content": request.message})
 
-    available_functions = {
-        'lookup_nba_schedule': lookup_nba_schedule,
-    }
-
     def generate() -> Generator[str, None, None]:
         response = client.chat(
             model=request.model,
             messages=messages,
             stream=True,
-            tools=[lookup_nba_schedule]
-
+            tools=[lookup_nba_schedule_def]
         )
 
         assistant_response = ""
