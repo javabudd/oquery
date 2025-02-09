@@ -1,44 +1,21 @@
+import logging
 import os
-from typing import Generator
-from typing import List
+from typing import Generator, List
 
+import requests
 import uvicorn
 from dotenv import load_dotenv
 from duckduckgo_search import DDGS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from fastapi.logger import logger
 from ollama import Client
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
 
-UNCERTAIN_RESPONSES = [
-    "I'm not sure about that.",
-    "I don't have access to real-time information.",
-    "You might need to check a reliable source for that.",
-    "Sorry, I can't provide a definitive answer.",
-    "I'm uncertain about that.",
-    "It’s unclear at the moment.",
-    "You can check a weather website for the latest updates.",
-    "Please refer to official sources for accurate information.",
-    "I'm unable to retrieve real-time data.",
-    "Consider checking an external service for the latest results.",
-    "I recommend using a mobile app or a weather website.",
-    "I don't have direct access to live information.",
-    "You should check trusted sources for the most up-to-date answer.",
-    "I'm a text-based AI assistant and do not have real-time access",
-    "I don't have real-time access to current schedules or future events",
-    "I don't have real-time access to current events or schedules",
-    "I'm not capable of providing real-time information",
-    "I don't have real-time access to current information",
-    "I do not have real-time access to current events or schedules",
-    "I'm a large language model, I don't have real-time access",
-    "I'm a large language model, I don't have have access to real-time information",
-]
-
 load_dotenv()
 
+# Initialize FastAPI app
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -48,7 +25,14 @@ app.add_middleware(
     allow_headers=["*"],  # Allows Content-Type, Authorization, etc.
 )
 
+# Load sentence similarity model
 model = SentenceTransformer("all-MiniLM-L6-v2")
+
+logger = logging.getLogger("uvicorn")
+
+UNCERTAIN_RESPONSES = [
+    "I am unsure about that. You may need to search externally for more information.",
+]
 
 
 class ChatRequest(BaseModel):
@@ -57,6 +41,7 @@ class ChatRequest(BaseModel):
     searchEngine: str = None
     history: List[dict] = []
     systemContent: str = None
+    imageData: str = None
 
 
 @app.get("/")
@@ -64,78 +49,16 @@ async def root():
     return {"Hello": "World"}
 
 
-@app.post('/query')
-def query(request: ChatRequest):
-    client = Client(host=os.getenv("OLLAMA_HOST"))
-
-    if request.systemContent:
-        system_content = request.systemContent
-    else:
-        system_content = (
-            "You are an AI-powered search engine that provides factual, concise, and highly "
-            "relevant answers based on known information."
-            "You prioritize accuracy, direct responses, and trusted sources. "
-            "When possible, summarize key points for clarity. "
-            "Do not speculate or provide unverified claims. "
-            "If an answer requires real-time data, indicate that external sources are necessary. "
-            "Do not generate opinions, predictions, or subjective analysis—only. Present verifiable "
-            "facts."
-        )
-
-    for history_item in request.history:
-        if "role" not in history_item:
-            history_item["role"] = "user"
-
-    messages = [
-                   {
-                       "role": "system",
-                       "content": system_content
-                   }
-               ] + request.history
-
-    messages.append({"role": "user", "content": request.message})
-
-    def generate_duckduckgo_search(ddg_query: str) -> str:
-        """Query DuckDuckGo and return formatted search results."""
-        try:
-            with DDGS() as ddgs:
-                results = ddgs.text(ddg_query, max_results=3)  # Get top 3 results
-            if results:
-                return "\n".join([f"{r['title']} - {r['href']}" for r in results])
-            return "No relevant DuckDuckGo results found."
-        except Exception as e:
-            return f"Failed to search with DuckDuckGo: {str(e)}"
-
-    def generate() -> Generator[str, None, None]:
-        response = client.chat(
-            model=request.model,
-            messages=messages,
-            stream=True,
-        )
-
-        assistant_response = ''
-        for chunk in response:
-            message = chunk["message"]
-            if message["role"] == "assistant":
-                content = message["content"]
-                yield content
-                assistant_response += content
-
-            elif message["role"] == "tool":
-                tool_output = _handle_tool_call(message["content"])
-                messages.append({"role": "tool", "content": tool_output})
-
-                # Let the assistant process the tool output
-                follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
-                for follow_up_chunk in follow_up_response:
-                    yield follow_up_chunk["message"]["content"]
-                    messages.append(follow_up_chunk["message"])
-
-        if _is_uncertain(assistant_response):
-            ddg_results = generate_duckduckgo_search(request.message)
-            yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
-
-    return StreamingResponse(generate(), media_type="text/plain")
+def generate_duckduckgo_search(search_query: str) -> str:
+    """Query DuckDuckGo and return formatted search results."""
+    try:
+        with DDGS() as ddgs:
+            results = ddgs.text(search_query, max_results=3)  # Get top 3 results
+        if results:
+            return "\n".join([f"{r['title']} - {r['href']}" for r in results])
+        return "No relevant DuckDuckGo results found."
+    except Exception as e:
+        return f"Failed to search with DuckDuckGo: {str(e)}"
 
 
 def _is_uncertain(response: str) -> bool:
@@ -151,17 +74,107 @@ def _is_uncertain(response: str) -> bool:
     return max_similarity > 0.53
 
 
-def _handle_tool_call(tool_request: str) -> str:
-    """Process tool calls (e.g., API requests) and return data."""
+def lookup_nba_schedule(date: str, team_name: str) -> str:
+    """Fetch NBA schedule from an API."""
+    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key=YOUR_NBA_API_KEY"
 
-    if 'UNSURE' in tool_request:
-        logger.info('detected UNSURE in assistant response, lets dig deeper...')
-        return '{"deep_dive": "1"}'
-    elif "stock price" in tool_request:
-        return '{"AAPL": "178.90 USD"}'
-    elif "weather" in tool_request:
-        return '{"NYC": {"temp": "72°F", "condition": "Sunny"}}'
-    return "Unknown tool response"
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        games = response.json()
+
+        logger.info(games)
+
+        # Filter games by team if provided
+        if team_name:
+            games = [game for game in games if game["HomeTeam"] == team_name or game["AwayTeam"] == team_name]
+
+        if not games:
+            return f"No games found for {team_name} on {date}."
+
+        return "\n".join([f"{game['AwayTeam']} vs {game['HomeTeam']} at {game['DateTime']}" for game in games])
+
+    except Exception as e:
+        return f"Failed to fetch NBA schedule: {str(e)}"
+
+
+@app.post('/query')
+def query(request: ChatRequest):
+    client = Client(host=os.getenv("OLLAMA_HOST"))
+
+    if request.systemContent:
+        system_content = request.systemContent
+    else:
+        system_content = (
+            "You are an AI-powered search assistant that provides factual, concise, and highly relevant answers."
+            "You must prioritize accuracy and direct responses using only known information."
+            "Only use external functions when absolutely necessary, and only if the user explicitly asks for that type "
+            "of information."
+            "Do not call functions for generic questions, greetings, or unrelated topics."
+            "Only call external functions if absolutely necessary and clearly needed."
+            "If you do not know the answer or need real-time data but cannot call a function, only ever respond with: '"
+            "I am unsure about that. You may need to search externally for more information.'"
+            "Never make up answers. If you are uncertain, explicitly say you are unsure."
+        )
+
+    for history_item in request.history:
+        if "role" not in history_item:
+            history_item["role"] = "user"
+
+    messages = [
+                   {
+                       "role": "system",
+                       "content": system_content
+                   }
+               ] + request.history
+
+    messages.append({"role": "user", "content": request.message})
+
+    available_functions = {
+        'lookup_nba_schedule': lookup_nba_schedule,
+    }
+
+    def generate() -> Generator[str, None, None]:
+        response = client.chat(
+            model=request.model,
+            messages=messages,
+            stream=True,
+            tools=[lookup_nba_schedule]
+
+        )
+
+        assistant_response = ""
+
+        for chunk in response:
+            message = chunk["message"]
+            if 'tool_calls' in message and message['tool_calls'] is not None:
+                logger.info(message)
+                for tool in message['tool_calls']:
+                    if function_to_call := available_functions.get(tool.function.name):
+                        logger.info('Calling function:', tool.function.name)
+                        logger.info('Arguments:', tool.function.arguments)
+                        tool_response = function_to_call(**tool.function.arguments)
+                        logger.info('Function output:', tool_response)
+                    else:
+                        tool_response = 'Could not retrieve more information.'
+                        logger.info('Function', tool.function.name, 'not found')
+
+                    # Append tool response and let AI process it
+                    messages.append({'role': 'tool', 'content': str(tool_response), 'name': tool.function.name})
+                    follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
+                    for follow_up_chunk in follow_up_response:
+                        yield follow_up_chunk["message"]["content"]
+
+            elif message["role"] == "assistant":
+                content = message["content"]
+                yield content
+                assistant_response += content
+
+        if _is_uncertain(assistant_response):
+            ddg_results = generate_duckduckgo_search(request.message)
+            yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
+
+    return StreamingResponse(generate(), media_type="text/plain")
 
 
 if __name__ == "__main__":
