@@ -14,9 +14,14 @@ type NewMessage = {
 	language?: string;
 };
 
-const ChatComponent = ({sections}: ChatComponentProps) => {
+const ChatComponent: React.FC<ChatComponentProps> = (
+	{
+		sections
+	}
+) => {
 	const responseRef = useRef<HTMLDivElement | null>(null);
 	const [processedMessages, setProcessedMessages] = useState<Array<NewMessage>>([]);
+	const [userScrolledUp, setUserScrolledUp] = useState(false);
 
 	useEffect(() => {
 		let newMessages: Array<NewMessage> = [];
@@ -50,20 +55,24 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 	}, [sections]);
 
 	useEffect(() => {
-		const chatContainer = responseRef?.current;
+		const chatContainer = responseRef.current;
 		if (!chatContainer) return;
 
-		const isAtBottom =
-			chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
+		const handleScroll = () => {
+			const nearBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - (chatContainer.clientHeight * 0.1);
+			setUserScrolledUp(!nearBottom);
+		};
 
-		if (isAtBottom) {
-			chatContainer.scrollTop = chatContainer.scrollHeight;
-		}
-	}, [sections]);
+		chatContainer.addEventListener("scroll", handleScroll);
+		return () => chatContainer.removeEventListener("scroll", handleScroll);
+	}, []);
 
 	useEffect(() => {
-		responseRef.current?.scrollTo({top: responseRef.current.scrollHeight, behavior: "smooth"});
-	}, [processedMessages]);
+		const chatContainer = responseRef.current;
+		if (!chatContainer || userScrolledUp) return;
+
+		chatContainer.scrollTo({top: chatContainer.scrollHeight, behavior: "smooth"});
+	}, [processedMessages, userScrolledUp]);
 
 	if (processedMessages.length === 0) {
 		return <></>;
@@ -72,21 +81,23 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 	return (
 		<div
 			ref={responseRef}
-			className="mt-5 mx-auto flex flex-col max-h-screen max-w-screen-md text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 overflow-y-auto break-words"
+			className="mt-5 mx-auto flex max-h-96 flex-col max-w-screen-md text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 overflow-y-auto break-words"
 		>
 			{processedMessages.map((message, i) => {
 				if (message.type === "code") {
 					return (
-						<div key={i} className="flex flex-row items-center mb-4">
-							<SyntaxHighlighter
-								language={message.language}
-								style={a11yDark}
-								showLineNumbers={true}
-								wrapLongLines={true}
-								className="max-h-50 rounded-sm"
-							>
-								{message.content}
-							</SyntaxHighlighter>
+						<div key={i}>
+							<div className="flex flex-row items-center mb-4">
+								<SyntaxHighlighter
+									language={message.language}
+									style={a11yDark}
+									showLineNumbers={true}
+									wrapLongLines={true}
+									className="max-h-50 rounded-sm"
+								>
+									{message.content}
+								</SyntaxHighlighter>
+							</div>
 							<CopyToClipboard text={message.content}>
 								<button className="ml-4 p-2 bg-gray-600 rounded-sm hover:bg-gray-700">
 									Copy
@@ -100,7 +111,7 @@ const ChatComponent = ({sections}: ChatComponentProps) => {
 						as={"p"}
 						key={i}
 						className={`p-3 rounded-2xl mt-5 w-fit text-left ${
-							i % 2 === 0 ? "bg-blue-500 self-end" : "bg-gray-500"
+							i % 2 === 0 ? "bg-blue-500 self-end max-w-sm" : "bg-gray-500"
 						}`}
 						options={{target: "_blank"}}
 					>
