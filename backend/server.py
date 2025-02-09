@@ -148,13 +148,14 @@ def query(request: ChatRequest):
                 logger.info(message)
                 for tool in message['tool_calls']:
                     if function_to_call := available_functions.get(tool.function.name):
-                        logger.info('Calling function:', tool.function.name)
-                        logger.info('Arguments:', tool.function.arguments)
+                        logger.info(f"Calling function: {tool.function.name}")
+                        logger.info(f"Arguments: {tool.function.arguments}")
+
                         tool_response = function_to_call(**tool.function.arguments)
-                        logger.info('Function output:', tool_response)
+                        logger.info(f"Function output: {tool_response}")
                     else:
                         tool_response = 'Could not retrieve more information.'
-                        logger.info('Function', tool.function.name, 'not found')
+                        logger.info(f"Function {tool.function.name} not found")
 
                     # Append tool response and let AI process it
                     messages.append({'role': 'tool', 'content': str(tool_response), 'name': tool.function.name})
