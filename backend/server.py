@@ -164,6 +164,7 @@ def query(request: ChatRequest):
                     follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
                     for follow_up_chunk in follow_up_response:
                         yield follow_up_chunk["message"]["content"]
+                        assistant_response += follow_up_chunk["message"]["content"]
 
             elif message["role"] == "assistant":
                 content = message["content"]
