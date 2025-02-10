@@ -72,7 +72,7 @@ def _is_uncertain(response: str) -> bool:
     logger.info(f"Negative Probability: {negative_prob:.4f}, Positive Probability: {positive_prob:.4f}")
 
     # Uncertainty is high if neither class is dominant (close to 50/50 split)
-    return abs(negative_prob - positive_prob) < 0.2  # Example threshold
+    return abs(negative_prob - positive_prob) < 0.2
 
 
 @app.post('/query')
