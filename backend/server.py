@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Generator, List
 
-import requests
 import uvicorn
 from dotenv import load_dotenv
 from duckduckgo_search import DDGS
@@ -12,6 +11,8 @@ from fastapi.responses import StreamingResponse
 from ollama import Client
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
+
+from tools.map import AVAILABLE_FUNCTIONS
 
 load_dotenv()
 
@@ -75,52 +76,6 @@ def _is_uncertain(response: str) -> bool:
     return max_similarity > 0.53
 
 
-def lookup_nba_schedule(team_name: str, date: str) -> str:
-    """Fetch NBA schedule from an API."""
-    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key=YOUR_NBA_API_KEY"
-
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        games = response.json()
-
-        logger.info(games)
-
-        # Filter games by team if provided
-        if team_name:
-            games = [game for game in games if game["HomeTeam"] == team_name or game["AwayTeam"] == team_name]
-
-        if not games:
-            return f"No games found for {team_name} on {date}."
-
-        return "\n".join([f"{game['AwayTeam']} vs {game['HomeTeam']} at {game['DateTime']}" for game in games])
-
-    except Exception as e:
-        return f"Failed to fetch NBA schedule: {str(e)}"
-
-
-lookup_nba_schedule_def = {
-    'type': 'function',
-    'function': {
-        'name': 'lookup_nba_schedule',
-        'description': 'Lookup an NBA team\'s schedule. Only use this function when the user is asking about an NBA '
-                       'schedule',
-        'parameters': {
-            'type': 'object',
-            'required': ['team_name'],
-            'properties': {
-                'team_name': {'type': 'string', 'description': 'The name of the NBA team to search for'},
-                'date': {'type': 'string', 'description': 'The start date of the NBA schedule lookup.'},
-            },
-        },
-    },
-}
-
-available_functions = {
-    'lookup_nba_schedule': lookup_nba_schedule,
-}
-
-
 @app.post('/query')
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
@@ -153,7 +108,7 @@ def query(request: ChatRequest):
             model=request.model,
             messages=messages,
             stream=True,
-            tools=[lookup_nba_schedule_def]
+            tools=[]
         )
 
         assistant_response = ""
@@ -163,7 +118,7 @@ def query(request: ChatRequest):
             if 'tool_calls' in message and message['tool_calls'] is not None:
                 logger.info(message)
                 for tool in message['tool_calls']:
-                    if function_to_call := available_functions.get(tool.function.name):
+                    if function_to_call := AVAILABLE_FUNCTIONS.get(tool.function.name):
                         logger.info(f"Calling function: {tool.function.name}")
                         logger.info(f"Arguments: {tool.function.arguments}")
 
