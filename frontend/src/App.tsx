@@ -27,7 +27,7 @@ try {
 	// Ignore errors thrown during CloudWatch RUM web client initialization
 }
 
-const API_URL = process.env.LLAMA_QUERY_URL ?? "https://javabudd.hopto.org/query";
+const API_URL = process.env.REACT_APP_LLAMA_QUERY_URL ?? "https://javabudd.hopto.org/query";
 
 function App() {
 	const DEFAULT_MODEL = "llama3.2";
