@@ -66,11 +66,13 @@ def _is_uncertain(response: str) -> bool:
     outputs = model(**inputs)  # SequenceClassifierOutput
 
     probabilities = F.softmax(outputs.logits, dim=-1)  # Convert logits to probabilities
-    uncertainty_score = probabilities[0][0].item()  # Adjust based on label ordering
+    negative_prob = probabilities[0][0].item()
+    positive_prob = probabilities[0][1].item()
 
-    logger.info("Uncertainty Score: {}".format(uncertainty_score))
+    logger.info(f"Negative Probability: {negative_prob:.4f}, Positive Probability: {positive_prob:.4f}")
 
-    return uncertainty_score > 0.55
+    # Uncertainty is high if neither class is dominant (close to 50/50 split)
+    return abs(negative_prob - positive_prob) < 0.2  # Example threshold
 
 
 @app.post('/query')
