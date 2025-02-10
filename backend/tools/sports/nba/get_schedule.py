@@ -1,4 +1,5 @@
 import logging
+import os
 
 import requests
 
@@ -23,7 +24,7 @@ lookup_nba_schedule_def = {
 
 def lookup_nba_schedule(team_name: str, date: str) -> str:
     """Fetch NBA schedule from an API."""
-    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key=YOUR_NBA_API_KEY"
+    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key={os.getenv('SPORTSDATA_IO_API_KEY')}"
 
     try:
         response = requests.get(url)

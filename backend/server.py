@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Generator, List
 
+import torch.nn.functional as F
 import uvicorn
 from dotenv import load_dotenv
 from duckduckgo_search import DDGS
@@ -10,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from ollama import Client
 from pydantic import BaseModel
-from sentence_transformers import SentenceTransformer, util
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from tools.map import AVAILABLE_FUNCTIONS
 
@@ -27,14 +28,11 @@ app.add_middleware(
 )
 
 # Load sentence similarity model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+model_name = "textattack/bert-base-uncased-SST-2"
+model = AutoModelForSequenceClassification.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 logger = logging.getLogger("uvicorn")
-
-UNCERTAIN_RESPONSES = [
-    "I am unsure about that. You may need to search externally for more information.",
-    "I'm not able to provide a direct answer",
-]
 
 
 class ChatRequest(BaseModel):
@@ -64,16 +62,15 @@ def generate_duckduckgo_search(search_query: str) -> str:
 
 
 def _is_uncertain(response: str) -> bool:
-    """Check if response is uncertain using sentence similarity."""
-    response_embedding = model.encode(response[:70], convert_to_tensor=True)
-    uncertain_embeddings = model.encode(UNCERTAIN_RESPONSES, convert_to_tensor=True)
+    inputs = tokenizer(response, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    outputs = model(**inputs)  # SequenceClassifierOutput
 
-    similarity_scores = util.pytorch_cos_sim(response_embedding, uncertain_embeddings)
-    max_similarity = similarity_scores.max().item()
+    probabilities = F.softmax(outputs.logits, dim=-1)  # Convert logits to probabilities
+    uncertainty_score = probabilities[0][0].item()  # Adjust based on label ordering
 
-    logger.info(f"Sentence uncertainty: {max_similarity}")
+    logger.info("Uncertainty Score: {}".format(uncertainty_score))
 
-    return max_similarity > 0.53
+    return uncertainty_score > 0.55
 
 
 @app.post('/query')
