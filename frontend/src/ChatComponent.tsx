@@ -59,7 +59,7 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 		if (!chatContainer) return;
 
 		const handleScroll = () => {
-			const nearBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - (chatContainer.clientHeight * 0.1);
+			const nearBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
 			setUserScrolledUp(!nearBottom);
 		};
 

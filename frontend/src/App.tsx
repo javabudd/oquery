@@ -27,9 +27,10 @@ try {
 	// Ignore errors thrown during CloudWatch RUM web client initialization
 }
 
+const API_URL = process.env.LLAMA_QUERY_URL ?? "https://javabudd.hopto.org/query";
+
 function App() {
-	const API_URL = "https://javabudd.hopto.org/query";
-	const DEFAULT_MODEL = "llama3.1";
+	const DEFAULT_MODEL = "llama3.2";
 	const DEFAULT_SEARCH_ENGINE = "duckduckgo";
 
 	const [response, setResponse] = useState("");
@@ -105,7 +106,7 @@ function App() {
 		} finally {
 			setLoading(false);
 		}
-	}, [model, message, searchEngine, history, systemContent]);
+	}, [message, model, searchEngine, history, systemContent]);
 
 	const stopRequest = () => {
 		if (controllerRef.current) {
@@ -177,8 +178,8 @@ function App() {
 						value={model}
 						className="p-2 border rounded-md"
 					>
-						<option value="llama3.1">Llama 3.1 (8B)</option>
 						<option value="llama3.2">Llama 3.2 (3B)</option>
+						<option value="llama3.1">Llama 3.1 (8B)</option>
 						<option value="phi4">phi4 (14B)</option>
 						<option value="deepseek-r1">DeepSeek-R1 (7B)</option>
 						<option disabled={true} value="">---- Premium ----</option>
