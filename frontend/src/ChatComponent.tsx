@@ -21,7 +21,8 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 ) => {
 	const responseRef = useRef<HTMLDivElement | null>(null);
 	const [processedMessages, setProcessedMessages] = useState<Array<NewMessage>>([]);
-	const [userScrolledUp, setUserScrolledUp] = useState(false);
+	const [isAtBottom, setIsAtBottom] = useState(true);
+	const prevScrollTop = useRef(0);
 
 	useEffect(() => {
 		let newMessages: Array<NewMessage> = [];
@@ -54,25 +55,23 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 		setProcessedMessages(newMessages);
 	}, [sections]);
 
-	useEffect(() => {
-		const chatContainer = responseRef.current;
-		if (!chatContainer) return;
+	const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+		const target = event.currentTarget;
+		const isScrollingUp = target.scrollTop < prevScrollTop.current;
+		prevScrollTop.current = target.scrollTop;
 
-		const handleScroll = () => {
-			const nearBottom = chatContainer.scrollTop + chatContainer.clientHeight >= chatContainer.scrollHeight - 40;
-			setUserScrolledUp(!nearBottom);
-		};
-
-		chatContainer.addEventListener("scroll", handleScroll);
-		return () => chatContainer.removeEventListener("scroll", handleScroll);
-	}, []);
+		setIsAtBottom(!isScrollingUp && target.scrollHeight - target.scrollTop >= target.clientHeight);
+	};
 
 	useEffect(() => {
 		const chatContainer = responseRef.current;
-		if (!chatContainer || userScrolledUp) return;
+		if (!chatContainer || !isAtBottom) return;
 
-		chatContainer.scrollTo({top: chatContainer.scrollHeight, behavior: "smooth"});
-	}, [processedMessages, userScrolledUp]);
+		// Force scrolling to bottom when new messages arrive
+		requestAnimationFrame(() => {
+			chatContainer.scrollTo({top: chatContainer.scrollHeight, behavior: "smooth"});
+		});
+	}, [processedMessages, isAtBottom]);
 
 	if (processedMessages.length === 0) {
 		return <></>;
@@ -82,6 +81,7 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 		<div
 			ref={responseRef}
 			className="mt-5 mx-auto flex max-h-96 flex-col max-w-screen-md text-white whitespace-pre-line border border-gray-300 p-3 rounded-md bg-gradient-to-bl bg-gray-500 overflow-y-auto break-words"
+			onScroll={handleScroll}
 		>
 			{processedMessages.map((message, i) => {
 				if (message.type === "code") {
