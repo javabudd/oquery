@@ -93,15 +93,20 @@ def query(request: ChatRequest):
                         logger.info(f"Calling function: {tool.function.name}")
                         logger.info(f"Arguments: {tool.function.arguments}")
 
-                        tool_response = function_to_call[1](**tool.function.arguments)
+                        tool_response = str(function_to_call[1](**tool.function.arguments))
                         logger.info(f"Function output: {tool_response}")
                     else:
                         tool_response = 'Could not retrieve more information.'
                         logger.info(f"Function {tool.function.name} not found")
 
-                    messages.append(
-                        {'role': 'tool', 'content': f"Please use this response to help the user: ${str(tool_response)}"}
-                    )
+                    if tool_response == "":
+                        messages.append(
+                            {'role': 'tool', 'content': f"Could not get a response from function call, ignore me."}
+                        )
+                    else:
+                        messages.append(
+                            {'role': 'tool', 'content': f"Use this response to assist the user: ${tool_response}"}
+                        )
                     follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
                     for follow_up_chunk in follow_up_response:
                         yield follow_up_chunk["message"]["content"]
