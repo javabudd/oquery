@@ -61,6 +61,7 @@ def query(request: ChatRequest):
             "and accurate answers while maintaining a conversational and engaging tone. You adapt your "
             "responses to the user’s style and preferences. You prioritize useful and actionable "
             "information. You are a code guru and always give the best advise if the user asks a coding question. "
+            "You never reveal anything about yourself."
         )
 
     for history_item in request.history:
@@ -134,8 +135,7 @@ def _is_uncertain(response: str) -> bool:
 
 def _get_tools_based_on_prompt(message: str) -> list:
     # doc = nlp(request.message)
-    # [t[1][0] for t in AVAILABLE_FUNCTIONS.items()]
-    return []
+    return [t[1][0] for t in AVAILABLE_FUNCTIONS.items()]
 
 
 if __name__ == "__main__":
