@@ -1,9 +1,4 @@
-import logging
-import os
-
-import requests
-
-logger = logging.getLogger("uvicorn")
+from duckduckgo_search import DDGS
 
 lookup_nba_schedule_def = {
     'type': 'function',
@@ -23,24 +18,14 @@ lookup_nba_schedule_def = {
 
 
 def lookup_nba_schedule(team_name: str, date: str) -> str:
-    """Fetch NBA schedule from an API."""
-    url = f"https://api.sportsdata.io/v3/nba/scores/json/GamesByDate/{date}?key={os.getenv('SPORTSDATA_IO_API_KEY')}"
-
+    """Query DuckDuckGo for NBA schedule and return formatted search results."""
+    if team_name == '' or date == '':
+        return ""
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        games = response.json()
-
-        logger.info(games)
-
-        # Filter games by team if provided
-        if team_name:
-            games = [game for game in games if game["HomeTeam"] == team_name or game["AwayTeam"] == team_name]
-
-        if not games:
-            return f"No games found for {team_name} on {date}."
-
-        return "\n".join([f"{game['AwayTeam']} vs {game['HomeTeam']} at {game['DateTime']}" for game in games])
-
+        with DDGS() as ddgs:
+            results = ddgs.text(team_name, max_results=1)  # Get top 1 result
+        if results:
+            return "\n".join([f"{r['title']} - {r['href']}" for r in results])
+        return "No relevant NBA schedule results found."
     except Exception as e:
-        return f"Failed to fetch NBA schedule: {str(e)}"
+        return f"Failed to find NBA schedule: {str(e)}"

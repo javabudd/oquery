@@ -5,7 +5,6 @@ from typing import Generator, List
 import torch.nn.functional as F
 import uvicorn
 from dotenv import load_dotenv
-from duckduckgo_search import DDGS
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -46,38 +45,13 @@ class ChatRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"Hello": "World"}
-
-
-def generate_duckduckgo_search(search_query: str) -> str:
-    """Query DuckDuckGo and return formatted search results."""
-    try:
-        with DDGS() as ddgs:
-            results = ddgs.text(search_query, max_results=3)  # Get top 3 results
-        if results:
-            return "\n".join([f"{r['title']} - {r['href']}" for r in results])
-        return "No relevant DuckDuckGo results found."
-    except Exception as e:
-        return f"Failed to search with DuckDuckGo: {str(e)}"
-
-
-def _is_uncertain(response: str) -> bool:
-    inputs = tokenizer(response, return_tensors="pt", truncation=True, padding=True, max_length=512)
-    outputs = model(**inputs)  # SequenceClassifierOutput
-
-    probabilities = F.softmax(outputs.logits, dim=-1)  # Convert logits to probabilities
-    negative_prob = probabilities[0][0].item()
-    positive_prob = probabilities[0][1].item()
-
-    logger.info(f"Negative Probability: {negative_prob:.4f}, Positive Probability: {positive_prob:.4f}")
-
-    # Uncertainty is high if neither class is dominant (close to 50/50 split)
-    return negative_prob > .7 and positive_prob < .4
+    return {"status": "jacked"}
 
 
 @app.post('/query')
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
+    tools = _get_tools_based_on_prompt(request.message)
 
     if request.systemContent:
         system_content = request.systemContent
@@ -86,7 +60,7 @@ def query(request: ChatRequest):
             "You are oQuery, a helpful and knowledgeable AI assistant. You provide clear, concise, "
             "and accurate answers while maintaining a conversational and engaging tone. You adapt your "
             "responses to the user’s style and preferences. You prioritize useful and actionable "
-            "information. You Follow ethical guidelines, avoid biases, and respect privacy."
+            "information. You are a code guru and always give the best advise if the user asks a coding question. "
         )
 
     for history_item in request.history:
@@ -107,10 +81,8 @@ def query(request: ChatRequest):
             model=request.model,
             messages=messages,
             stream=True,
-            tools=[]
+            tools=tools
         )
-
-        assistant_response = ""
 
         for chunk in response:
             message = chunk["message"]
@@ -121,29 +93,44 @@ def query(request: ChatRequest):
                         logger.info(f"Calling function: {tool.function.name}")
                         logger.info(f"Arguments: {tool.function.arguments}")
 
-                        tool_response = function_to_call(**tool.function.arguments)
+                        tool_response = function_to_call[1](**tool.function.arguments)
                         logger.info(f"Function output: {tool_response}")
                     else:
                         tool_response = 'Could not retrieve more information.'
                         logger.info(f"Function {tool.function.name} not found")
 
-                    # Append tool response and let AI process it
-                    messages.append({'role': 'tool', 'content': str(tool_response), 'name': tool.function.name})
+                    messages.append(
+                        {'role': 'tool', 'content': f"Please use this response to help the user: ${str(tool_response)}"}
+                    )
                     follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
                     for follow_up_chunk in follow_up_response:
                         yield follow_up_chunk["message"]["content"]
-                        assistant_response += follow_up_chunk["message"]["content"]
 
             elif message["role"] == "assistant":
                 content = message["content"]
                 yield content
-                assistant_response += content
-
-        if _is_uncertain(assistant_response):
-            ddg_results = generate_duckduckgo_search(request.message)
-            yield f"\n\n<search>\nAI was unsure, so here are DuckDuckGo results:\n{ddg_results}\n</search>"
 
     return StreamingResponse(generate(), media_type="text/plain")
+
+
+def _is_uncertain(response: str) -> bool:
+    inputs = tokenizer(response, return_tensors="pt", truncation=True, padding=True, max_length=512)
+    outputs = model(**inputs)  # SequenceClassifierOutput
+
+    probabilities = F.softmax(outputs.logits, dim=-1)  # Convert logits to probabilities
+    negative_prob = probabilities[0][0].item()
+    positive_prob = probabilities[0][1].item()
+
+    logger.info(f"Negative Probability: {negative_prob:.4f}, Positive Probability: {positive_prob:.4f}")
+
+    # Uncertainty is high if neither class is dominant (close to 50/50 split)
+    return negative_prob > .7 and positive_prob < .4
+
+
+def _get_tools_based_on_prompt(message: str) -> list:
+    # doc = nlp(request.message)
+    # [t[1][0] for t in AVAILABLE_FUNCTIONS.items()]
+    return []
 
 
 if __name__ == "__main__":
