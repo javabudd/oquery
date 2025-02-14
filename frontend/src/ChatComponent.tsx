@@ -21,8 +21,8 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 ) => {
 	const responseRef = useRef<HTMLDivElement | null>(null);
 	const [processedMessages, setProcessedMessages] = useState<Array<NewMessage>>([]);
-	const [isAtBottom, setIsAtBottom] = useState(true);
-	const prevScrollTop = useRef(0);
+	const [isAutoScroll, setIsAutoScroll] = useState(true);
+	const [prevScrollTop, setPrevScrollTop] = useState(0);
 
 	useEffect(() => {
 		let newMessages: Array<NewMessage> = [];
@@ -55,23 +55,34 @@ const ChatComponent: React.FC<ChatComponentProps> = (
 		setProcessedMessages(newMessages);
 	}, [sections]);
 
-	const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
-		const target = event.currentTarget;
-		const isScrollingUp = target.scrollTop < prevScrollTop.current;
-		prevScrollTop.current = target.scrollTop;
+	const handleScroll = () => {
+		const chatContainer = responseRef.current;
+		if (!chatContainer) return;
 
-		setIsAtBottom(!isScrollingUp && target.scrollHeight - target.scrollTop >= target.clientHeight);
+		const isScrollingUp = chatContainer.scrollTop < prevScrollTop;
+		const isAtBottomThreshold =
+			chatContainer.scrollHeight - chatContainer.scrollTop <= chatContainer.clientHeight + 100;
+
+		if (isScrollingUp) {
+			setIsAutoScroll(false);
+		} else if (isAtBottomThreshold) {
+			setIsAutoScroll(true);
+		}
+
+		setPrevScrollTop(chatContainer.scrollTop)
 	};
 
 	useEffect(() => {
 		const chatContainer = responseRef.current;
-		if (!chatContainer || !isAtBottom) return;
+		if (!chatContainer || !isAutoScroll) return;
+
+		chatContainer.scrollTop = chatContainer.scrollHeight
 
 		// Force scrolling to bottom when new messages arrive
 		requestAnimationFrame(() => {
 			chatContainer.scrollTo({top: chatContainer.scrollHeight, behavior: "smooth"});
 		});
-	}, [processedMessages, isAtBottom]);
+	}, [processedMessages, isAutoScroll]);
 
 	if (processedMessages.length === 0) {
 		return <></>;
