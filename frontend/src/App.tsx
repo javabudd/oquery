@@ -2,6 +2,7 @@ import {AwsRum, AwsRumConfig} from 'aws-rum-web';
 import React, {useCallback, useRef, useState} from 'react';
 import QueryLlmComponent from "./QueryLlmComponent";
 import {clearHistory, Message, saveMessage} from "./idb";
+import Dropzone from "react-dropzone";
 
 try {
 	const config: AwsRumConfig = {
@@ -29,6 +30,16 @@ try {
 
 const API_URL = process.env.REACT_APP_LLAMA_QUERY_URL ?? "https://javabudd.hopto.org/query";
 
+function arrayBufferToBase64(buffer: any) {
+	let binary = '';
+	const bytes = new Uint8Array(buffer);
+	const len = bytes.byteLength;
+	for (let i = 0; i < len; i++) {
+		binary += String.fromCharCode(bytes[i]);
+	}
+	return btoa(binary);
+}
+
 function App() {
 	const DEFAULT_MODEL = "llama3.1";
 	const DEFAULT_SEARCH_ENGINE = "duckduckgo";
@@ -37,12 +48,29 @@ function App() {
 	const [history, setHistory] = useState<Array<Message>>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [message, setMessage] = useState("");
+	const [imageData, setImageData] = useState<string | undefined>(undefined);
 	const [sections, setSections] = useState<string[]>([]);
 	const [model, setModel] = useState<string>(DEFAULT_MODEL);
 	const [systemContent, setSystemContent] = useState<string | undefined>(undefined);
 	const [searchEngine, setSearchEngine] = useState<string>(DEFAULT_SEARCH_ENGINE);
 	const [loading, setLoading] = useState(false);
 	const controllerRef = useRef<AbortController | null>(null);
+
+	const handleDrop = (acceptedFiles: Array<File>) => {
+		// Get the first accepted file
+		const file = acceptedFiles[0];
+		// Create a FileReader to read the file's blob URL
+		const reader = new FileReader();
+		reader.onload = () => {
+			setImageData(arrayBufferToBase64(reader.result));
+		};
+		reader.readAsDataURL(file);
+	};
+
+	const handlePaste = async (clipboardData: DataTransfer) => {
+		const buffer = await clipboardData.files[0].arrayBuffer();
+		setImageData(arrayBufferToBase64(buffer));
+	};
 
 	const sendRequest = useCallback(async () => {
 		if (!message.trim()) return;
@@ -52,6 +80,7 @@ function App() {
 		setSections((state) => [...state, message.trim()]);
 		setResponse("");
 		setMessage("");
+		setImageData(undefined);
 
 		if (controllerRef.current) {
 			controllerRef.current.abort();
@@ -74,7 +103,8 @@ function App() {
 					message,
 					searchEngine,
 					history: [...history],
-					systemContent
+					systemContent,
+					imageData
 				}),
 				signal,
 			});
@@ -106,7 +136,7 @@ function App() {
 		} finally {
 			setLoading(false);
 		}
-	}, [message, model, searchEngine, history, systemContent]);
+	}, [message, model, searchEngine, history, systemContent, imageData]);
 
 	const stopRequest = () => {
 		if (controllerRef.current) {
@@ -118,7 +148,14 @@ function App() {
 	};
 
 	const resetForm = async () => {
+		if (controllerRef.current) {
+			controllerRef.current.abort();
+			controllerRef.current = null;
+		}
+		setLoading(false);
+
 		setMessage("");
+		setImageData(undefined);
 		setResponse("");
 		setSections([])
 		setError(null);
@@ -142,10 +179,19 @@ function App() {
 				/>
 			</div>
 			<div className={"mx-auto"}>
+				<Dropzone onDrop={handleDrop}>
+					{({getRootProps, getInputProps}) => (
+						<div {...getRootProps()} className="dropzone">
+							<input {...getInputProps()} />
+							<p>Drag and drop an image or click to select one</p>
+						</div>
+					)}
+				</Dropzone>
 				<textarea
 					placeholder="Enter your query"
 					value={message}
 					onChange={(e) => setMessage(e.target.value)}
+					onPaste={(e) => handlePaste(e.clipboardData)}
 					onKeyDown={async (e) => {
 						if (e.key === "Enter" && !e.shiftKey) {
 							e.preventDefault(); // Prevents newline in textarea
@@ -155,6 +201,9 @@ function App() {
 					disabled={loading}
 					className="p-2 mt-4 w-full max-w-md border rounded-md"
 				/>
+
+				{imageData && <img width={100} height={100} src={`data:image/png;base64,${imageData}`} alt=""/>}
+
 				<div className="mt-4 flex flex-wrap justify-center gap-3">
 					{loading ? (
 						<button
