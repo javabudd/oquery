@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 from enum import Enum
@@ -74,6 +75,19 @@ def query(request: ChatRequest):
             "You never reveal anything about yourself."
         )
 
+    image_response = None
+    if request.imageData:
+        image_response = client.chat(
+            model="llava:13b",
+            messages=[
+                {
+                    'role': 'user',
+                    'content': 'please describe this image',
+                    'images': [base64.b64decode(request.imageData)]
+                }
+            ]
+        )
+
     for history_item in request.history:
         if "role" not in history_item:
             history_item["role"] = "user"
@@ -84,6 +98,14 @@ def query(request: ChatRequest):
                        "content": system_content
                    }
                ] + request.history
+
+    if image_response:
+        logger.debug(image_response)
+
+        messages.append({"role": "user", "content": f"""
+         Please attempt to assist the users request with the result of this 
+          image description {image_response['message']}
+        """})
 
     messages.append({"role": "user", "content": request.message})
 
