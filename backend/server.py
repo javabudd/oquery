@@ -61,7 +61,7 @@ async def root():
 @app.post('/query')
 def query(request: ChatRequest):
     client = Client(host=os.getenv("OLLAMA_HOST"))
-    tools = _get_tools_based_on_prompt(request.message)
+    # tools = _get_tools_based_on_prompt(request.message)
 
     if request.systemContent:
         system_content = request.systemContent
@@ -92,7 +92,7 @@ def query(request: ChatRequest):
             model=request.model.value,
             messages=messages,
             stream=True,
-            tools=tools
+            tools=[]
         )
 
         for chunk in response:
