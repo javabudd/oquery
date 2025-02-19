@@ -1,5 +1,6 @@
 import logging
 import os
+from enum import Enum
 from typing import Generator, List
 
 import torch.nn.functional as F
@@ -34,8 +35,17 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 logger = logging.getLogger("uvicorn")
 
 
+class ModelType(Enum):
+    LLAMA3_1 = 'llama3.1'
+    LLAMA3_2 = 'llama3.2'
+    OPENTHINKER = 'openthinker'
+    PHI4 = 'phi4'
+    DEEPSEEK_R1 = 'deepseek-r1'
+    DEEPSEEK_R1_14B = 'deepseek-r1:14b'
+
+
 class ChatRequest(BaseModel):
-    model: str
+    model: ModelType
     message: str
     searchEngine: str = None
     history: List[dict] = []
@@ -79,7 +89,7 @@ def query(request: ChatRequest):
 
     def generate() -> Generator[str, None, None]:
         response = client.chat(
-            model=request.model,
+            model=request.model.value,
             messages=messages,
             stream=True,
             tools=tools
@@ -108,7 +118,7 @@ def query(request: ChatRequest):
                         messages.append(
                             {'role': 'tool', 'content': f"Use this response to assist the user: ${tool_response}"}
                         )
-                    follow_up_response = client.chat(model=request.model, messages=messages, stream=True)
+                    follow_up_response = client.chat(model=request.model.value, messages=messages, stream=True)
                     for follow_up_chunk in follow_up_response:
                         yield follow_up_chunk["message"]["content"]
 
