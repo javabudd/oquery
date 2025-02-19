@@ -183,11 +183,11 @@ function App() {
 						<option value="openthinker">openthinker (7B)</option>
 						<option value="phi4">phi4 (14B)</option>
 						<option value="deepseek-r1">DeepSeek-R1 (7B)</option>
-						<option value="deepseek-r1-14b">DeepSeek-R1 (14B)</option>
+						<option value="deepseek-r1:14b">DeepSeek-R1 (14B)</option>
 						<option disabled={true} value="">---- Premium ----</option>
 						<option disabled={true} value="llama3.3">Llama 3.3 (70B)</option>
-						<option disabled={true} value="deepseek-r1-70b">DeepSeek-R1 (70B)</option>
-						<option disabled={true} value="deepseek-r1-671b">DeepSeek-R1 (671B)</option>
+						<option disabled={true} value="deepseek-r1:70b">DeepSeek-R1 (70B)</option>
+						<option disabled={true} value="deepseek-r1:671b">DeepSeek-R1 (671B)</option>
 					</select>
 				</div>
 			</div>
