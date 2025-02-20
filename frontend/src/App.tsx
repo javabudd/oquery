@@ -64,7 +64,7 @@ function App() {
 		reader.onload = () => {
 			setImageData(arrayBufferToBase64(reader.result));
 		};
-		reader.readAsDataURL(file);
+		reader.readAsArrayBuffer(file);
 	};
 
 	const handlePaste = async (clipboardData: DataTransfer) => {
