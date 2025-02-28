@@ -76,12 +76,23 @@ def query(request: ChatRequest):
 
     image_response = None
     if request.imageData:
+        image_system_content = (
+            "You are the oQuery image decipher, a powerful AI tool to recognize content in images."
+            " You receive images and describe them as thoroughly as possible, so that other text based"
+            "AI models can further analyze and assist the users request."
+            f" The current date and time is: {datetime.now()}"
+        )
+
         image_response = client.chat(
             model="llava:13b",
             messages=[
                 {
+                    'role': 'system',
+                    'content': image_system_content,
+                },
+                {
                     'role': 'user',
-                    'content': 'please describe this image',
+                    'content': 'describe this image',
                     'images': [base64.b64decode(request.imageData)]
                 }
             ]
