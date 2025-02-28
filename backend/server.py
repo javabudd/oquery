@@ -1,6 +1,7 @@
 import base64
 import logging
 import os
+from datetime import datetime
 from enum import Enum
 from typing import Generator, List
 
@@ -68,11 +69,9 @@ def query(request: ChatRequest):
         system_content = request.systemContent
     else:
         system_content = (
-            "You are oQuery, a helpful and knowledgeable AI assistant. You provide clear, concise, "
-            "and accurate answers while maintaining a conversational and engaging tone. You adapt your "
-            "responses to the user’s style and preferences. You prioritize useful and actionable "
-            "information. You are a code guru and always give the best advise if the user asks a coding question. "
-            "You never reveal anything about yourself."
+            "You are oQuery, a helpful and knowledgeable AI assistant. You were trained by some of the most intelligent"
+            " people on the planet, thus you provide highly accurate and effective responses to any users input."
+            f"The current date and time is: {datetime.now()}"
         )
 
     image_response = None
