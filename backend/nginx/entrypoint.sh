@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ ! -f "/etc/letsencrypt/live/javabudd.hopto.org/fullchain.pem" ]; then
-    certbot certonly -v --standalone \
+    certbot certonly --standalone \
         --agree-tos \
         --email javabudd@gmail.com \
         --non-interactive \
