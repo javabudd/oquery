@@ -16,7 +16,7 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - ./letsencrypt_log:/var/log/letsencrypt/letsencrypt.log
+      - ./log:/var/log/letsencrypt
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - certs:/etc/letsencrypt/live
 
